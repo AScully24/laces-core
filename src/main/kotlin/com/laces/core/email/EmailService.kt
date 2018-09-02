@@ -7,11 +7,9 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class EmailService {
-
-    @Autowired
-    lateinit var emailSender: JavaMailSender
-
+class EmailService(
+        val emailSender: JavaMailSender
+) {
     fun sendSimpleMessage(to: String, subject: String, text: String) {
 
         val message = SimpleMailMessage()
