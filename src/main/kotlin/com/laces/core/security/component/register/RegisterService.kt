@@ -41,8 +41,8 @@ class RegisterService(
         val passKey = keyGeneratorService.generateNewPassKey()
         registerTokenRepository.save(RegisterToken(passKey, user))
         try {
-            emailService.sendSimpleMessage(newUser.username, "ADT Registration Confirmation",
-                    "Please follow the following link to the URL to complete your registrations.\n${appUrl}register-confirmation/$passKey")
+            emailService.sendSimpleMessage(newUser.username, "Registration Confirmation",
+                    "Please follow the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey")
 
         } catch (e: Exception) {
             LOG.error("Unable to send email: ", e)

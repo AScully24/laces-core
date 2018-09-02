@@ -14,8 +14,8 @@ data class RegisterToken (
 
         var token: String = "N/A",
 
-        @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER)
         @JoinColumn
+        @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER)
         val user: User = User("empty"),
 
         var expiryDate: Date = calculateExpiryDate()
