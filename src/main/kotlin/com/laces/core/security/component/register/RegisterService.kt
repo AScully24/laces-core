@@ -94,7 +94,7 @@ class RegisterService(
                 .map { it.user }
                 .filter { !it.isActive }
 
-        registerTokenRepository.delete(oldTokens)
+        registerTokenRepository.deleteAll(oldTokens)
         userService.delete(oldUsers)
     }
 }

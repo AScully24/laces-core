@@ -17,7 +17,7 @@ class UserService(
 
     @Transactional
     fun delete(users: List<User>) {
-        userRepository.delete(users)
+        userRepository.deleteAll(users)
     }
 
     @Transactional
