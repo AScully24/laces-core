@@ -28,10 +28,9 @@ app:
   stripe:
     enabled: true
     api-key: pk_test_123
-    secret: sk_test_W84oX1fufaHFqsFeWzNWyVg5
+    secret: sk_test_123
     webhook:
-      signing-secret: whsec_dmEdxf9Xs64jzUzjo0TmHSECOgRglSlQ
-
+      signing-secret: whsec_foo
 laces:
   security:
     allowedUrls:
