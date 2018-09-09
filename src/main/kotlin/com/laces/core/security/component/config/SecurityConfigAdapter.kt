@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 
 @Configuration
 @ConfigurationProperties(prefix="laces.security")
-class AllowedSecurityConfigAdapter : WebSecurityConfigurerAdapter(){
+class SecurityConfigAdapter : WebSecurityConfigurerAdapter(){
 
     @Autowired
     lateinit var authenticationProvider : DaoAuthenticationProvider
