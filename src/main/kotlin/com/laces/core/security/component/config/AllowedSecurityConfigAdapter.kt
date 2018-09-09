@@ -1,6 +1,7 @@
 package com.laces.core.security.component.config
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -15,17 +16,23 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 
 
 @Configuration
+@ConfigurationProperties(prefix="laces.security")
 class AllowedSecurityConfigAdapter : WebSecurityConfigurerAdapter(){
 
     @Autowired
     lateinit var authenticationProvider : DaoAuthenticationProvider
 
+    var allowedUrls = mutableListOf<String>()
+
     override fun configure(http: HttpSecurity) {
+        allowedUrls.addAll(listOf("/built/**", "/*.js", "/*.jsx","/*.jpg", "/main.css"
+                ,"/auth/**","/h2-console/**","/swagger.html","/swagger-ui.html","/swagger-resources/**",
+                "/v2/**","/webjars/**", "/register-confirmation/**","/subscription/**"))
+
         http
-            .authorizeRequests()
-            .antMatchers("/**", "/built/**", "/*.js", "/*.jsx","/*.jpg", "/main.css"
-                    ,"/auth/**","/h2-console/**","/swagger.html","/swagger-ui.html","/swagger-resources/**",
-                    "/v2/**","/webjars/**", "/register-confirmation/**","/subscription/**")
+            .antMatcher("/**")
+                .authorizeRequests()
+            .antMatchers(*allowedUrls.toTypedArray())
                 .permitAll()
             .and()
                 .formLogin()
@@ -43,7 +50,6 @@ class AllowedSecurityConfigAdapter : WebSecurityConfigurerAdapter(){
                 .disable()
             .and()
                 .csrf().disable()
-
         http
             .sessionManagement()
             .maximumSessions(1)
