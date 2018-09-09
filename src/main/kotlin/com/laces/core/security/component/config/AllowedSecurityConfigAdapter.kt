@@ -30,10 +30,9 @@ class AllowedSecurityConfigAdapter : WebSecurityConfigurerAdapter(){
                 "/v2/**","/webjars/**", "/register-confirmation/**","/subscription/**"))
 
         http
-            .antMatcher("/**")
-                .authorizeRequests()
-            .antMatchers(*allowedUrls.toTypedArray())
-                .permitAll()
+            .authorizeRequests()
+                .antMatchers(*allowedUrls.toTypedArray()).permitAll()
+            .anyRequest().authenticated()
             .and()
                 .formLogin()
                 .permitAll()
