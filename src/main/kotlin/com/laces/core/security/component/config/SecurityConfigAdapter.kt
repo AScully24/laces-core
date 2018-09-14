@@ -1,5 +1,6 @@
 package com.laces.core.security.component.config
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -16,11 +17,14 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 
 
 @Configuration
-@ConfigurationProperties(prefix="laces.security")
-class SecurityConfigAdapter : WebSecurityConfigurerAdapter(){
+@ConfigurationProperties(prefix = "laces.security")
+class SecurityConfigAdapter(
+        val authenticationProvider: DaoAuthenticationProvider
+) : WebSecurityConfigurerAdapter() {
 
-    @Autowired
-    lateinit var authenticationProvider : DaoAuthenticationProvider
+    companion object {
+        private val LOG = LoggerFactory.getLogger(SecurityConfigAdapter::class.java)
+    }
 
     val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
             , "/auth/**", "/h2-console/**", "/swagger.html", "/swagger-ui.html", "/swagger-resources/**",
@@ -30,31 +34,30 @@ class SecurityConfigAdapter : WebSecurityConfigurerAdapter(){
     var includeDefaults = true
 
     override fun configure(http: HttpSecurity) {
-        if (includeDefaults){
+        if (includeDefaults) {
             allowedUrls.addAll(defaultUrls)
-            println("Including default URLs.")
+            LOG.info("Including default URLs.")
         }
-        println(allowedUrls)
+        LOG.info("Allowed URLS: ${allowedUrls.toString()}")
         http
             .authorizeRequests()
-                .antMatchers(*allowedUrls.toTypedArray()).permitAll()
+            .antMatchers(*allowedUrls.toTypedArray()).permitAll()
             .anyRequest().authenticated()
-            .and()
-                .formLogin()
-                .permitAll()
+        .and()
+            .formLogin().permitAll()
                 .successForwardUrl("/auth/success")
                 .failureForwardUrl("/auth/failure")
-            .and()
-                .logout()
-                .permitAll()
-                .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
-            .and()
+        .and()
+            .logout().permitAll()
+            .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
+        .and()
                 // Needed to access the h2-console. This should be remove in final deployment
-                .headers()
-                .frameOptions()
-                .disable()
-            .and()
-                .csrf().disable()
+            .headers()
+            .frameOptions()
+            .disable()
+        .and()
+            .csrf().disable()
+
         http
             .sessionManagement()
             .maximumSessions(1)
