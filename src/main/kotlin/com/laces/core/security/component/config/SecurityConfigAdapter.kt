@@ -28,7 +28,7 @@ class SecurityConfigAdapter(
 
     val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
             , "/auth/**", "/h2-console/**", "/swagger.html", "/swagger-ui.html", "/swagger-resources/**",
-            "/v2/**", "/webjars/**", "/register-confirmation/**", "/subscription/**")
+            "/v2/**", "/webjars/**", "/register-confirmation/**", "/payment/**")
 
     var allowedUrls = mutableListOf<String>()
     var includeDefaults = true
@@ -38,7 +38,7 @@ class SecurityConfigAdapter(
             allowedUrls.addAll(defaultUrls)
             LOG.info("Including default URLs.")
         }
-        LOG.info("Allowed URLS: ${allowedUrls.toString()}")
+        LOG.info("Allowed URLS: $allowedUrls")
         http
             .authorizeRequests()
             .antMatchers(*allowedUrls.toTypedArray()).permitAll()
