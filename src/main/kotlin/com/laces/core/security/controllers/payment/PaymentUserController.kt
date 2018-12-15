@@ -26,7 +26,7 @@ class PaymentUserController {
     fun availablePlans(): Map<String, String> {
         val user = userService.getCurrentUser()
         val plan = subscriptionPlanService.findSubscriptionPlan(user.planStripeId)
-                ?: throw UserSubscriptionStripeIdException(user)
+                ?: throw UserSubscriptionStripeIdException("Unable to find subscription ID ${user.planStripeId} for user ${user.username}")
 
         val message = if (user.subscriptionCancelPending) plan.name + " - Cancel Pending" else plan.name
 
