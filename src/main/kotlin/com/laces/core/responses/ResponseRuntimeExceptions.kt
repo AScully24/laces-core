@@ -11,7 +11,7 @@ class UserCustomerStripeIdException(exception: String) : RuntimeException(except
 class UserNameExistsException(userName: String) : RuntimeException("Unable to find username $userName")
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-class UserSubscriptionStripeIdException(user: User) : RuntimeException("Unable to find subscription ID ${user.planStripeId} for user ${user.username}")
+class UserSubscriptionStripeIdException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class CurrentUserNotFoundException(exception: String) : RuntimeException(exception)
