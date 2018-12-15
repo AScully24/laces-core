@@ -1,5 +1,6 @@
 package com.laces.core.responses
 
+import com.laces.core.security.component.user.User
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
@@ -10,7 +11,7 @@ class UserCustomerStripeIdException(exception: String) : RuntimeException(except
 class UserNameExistsException(userName: String) : RuntimeException("Unable to find username $userName")
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-class UserSubscriptionStripeIdException(exception: String) : RuntimeException(exception)
+class UserSubscriptionStripeIdException(user: User) : RuntimeException("Unable to find subscription ID ${user.planStripeId} for user ${user.username}")
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class CurrentUserNotFoundException(exception: String) : RuntimeException(exception)
