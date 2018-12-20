@@ -2,6 +2,7 @@ package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
 import com.laces.core.responses.UserSubscriptionStripeIdException
+import com.laces.core.security.component.user.SubscriptionItemData
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.stripe.Stripe
@@ -9,7 +10,6 @@ import com.stripe.model.Customer
 import com.stripe.model.Subscription
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -18,20 +18,16 @@ import javax.transaction.Transactional
 
 @Service
 @ConditionalOnProperty("app.stripe.enabled")
-class PaymentService {
+class PaymentService(
+        @Value("\${app.stripe.secret}")
+        val secret: String,
+        val userService : UserService
+
+) {
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(PaymentService::class.java)
     }
-
-    @Value("\${app.stripe.api-key}")
-    lateinit var apiKey : String
-
-    @Value("\${app.stripe.secret}")
-    lateinit var secret: String
-
-    @Autowired
-    lateinit var userService : UserService
 
     @PostConstruct
     fun init(){
@@ -89,9 +85,11 @@ class PaymentService {
         val subscription = signUpCustomerToSubscription(customer, planStripeId)
 
         user.subscriptionStripeId = subscription.id
-
         user.subscriptionActive = true
         user.planStripeId = planStripeId
+
+        // There should only be a single plan per subscriber, but this allows multiple plans. Need to ensure more than one of the same plan is on any single subscription.
+        user.subscriptionItemId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
 
         userService.save(user)
 
@@ -103,12 +101,12 @@ class PaymentService {
         item["plan"] = productStripeId
         val items = HashMap<String,Any>()
         items["0"] = item
-        val params = HashMap<String,Any>()
-        params["customer"] = customer.id
-        params["items"] = items
+        val subscriptionRequest = HashMap<String,Any>()
+        subscriptionRequest["customer"] = customer.id
+        subscriptionRequest["items"] = items
 
         try {
-            return Subscription.create(params)
+            return Subscription.create(subscriptionRequest)
         } catch (e: Exception) {
             LOGGER.error("Failed to sign user up to subscription", e)
             throw UserSubscriptionStripeIdException("Failed to sign user up to subscription: $productStripeId")

@@ -12,9 +12,15 @@ data class  User (
     var password = ""
     var apiKey = ""
     var isActive = true
-    var customerStripeId = ""
-    var subscriptionStripeId = ""
-    var planStripeId = ""
+
     var subscriptionActive = false
     var subscriptionCancelPending = false
+
+    var customerStripeId = ""
+    var subscriptionStripeId = ""
+    var subscriptionItemId = ""
+    var planStripeId = ""
+
 }
+
+data class SubscriptionItemData(var subscriptionItemId :String = "", var planStripeId :String = "")
