@@ -86,7 +86,7 @@ class RegisterService(
 
 
     @Transactional
-    @Scheduled(cron = "\${app.unvalidatedUserCron}")
+    @Scheduled(cron = "\${laces.unvalidatedUserCron}")
     fun removeUnvalidatedNewUsersAndRegisterTokens() {
         val today = Date()
         val oldTokens = registerTokenRepository.findAllByExpiryDateLessThan(today)

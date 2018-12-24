@@ -23,4 +23,8 @@ class SubscriptionPlanService {
         return subscriptionPlans.any { it.stripeId == stripId }
     }
 
+    fun findByName(name : String) : SubscriptionPlan {
+        return subscriptionPlans.first { it.name == name }
+    }
+
 }

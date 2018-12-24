@@ -4,7 +4,6 @@ class SubscriptionPlan{
     var name : String = ""
     var recommended = false
     var stripeId : String = ""
-    var overflowStripeId : String = ""
     var price = ""
     var features : List<String> = mutableListOf()
 }
