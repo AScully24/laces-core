@@ -20,6 +20,7 @@ data class  User (
     var subscriptionStripeId = ""
     var subscriptionItemId = ""
     var planStripeId = ""
+    var meteredStripeId : String? = null
 
 }
 
