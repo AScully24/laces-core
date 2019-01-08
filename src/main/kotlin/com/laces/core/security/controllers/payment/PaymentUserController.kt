@@ -11,17 +11,12 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("api/user")
 @ConditionalOnProperty("app.stripe.enabled")
-class PaymentUserController {
+class PaymentUserController(
+        val subscriptionPlanService: SubscriptionPlanService,
+        val paymentService: PaymentService,
+        val userService: UserService
 
-    @Autowired
-    lateinit var subscriptionPlanService: SubscriptionPlanService
-
-    @Autowired
-    lateinit var paymentService: PaymentService
-
-    @Autowired
-    lateinit var userService : UserService
-
+) {
     @GetMapping("plan")
     fun availablePlans(): Map<String, String> {
         val user = userService.getCurrentUser()
@@ -46,7 +41,7 @@ class PaymentUserController {
     fun changeSubscription(@RequestParam newPlanStripeId: String): Map<String, String> {
         val user = userService.getCurrentUser()
 
-        paymentService.changeUserSubscription(user,newPlanStripeId)
+        paymentService.changeUserSubscription(user, newPlanStripeId)
 
         return mapOf("message" to "subscription changed")
     }

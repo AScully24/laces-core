@@ -2,7 +2,7 @@ package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
 import com.laces.core.responses.UserSubscriptionStripeIdException
-import com.laces.core.security.component.user.SubscriptionItemData
+import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.stripe.Stripe
@@ -21,7 +21,8 @@ import javax.transaction.Transactional
 class PaymentService(
         @Value("\${app.stripe.secret}")
         val secret: String,
-        val userService : UserService
+        val userService: UserService,
+        val planService: SubscriptionPlanService
 
 ) {
 
@@ -30,12 +31,12 @@ class PaymentService(
     }
 
     @PostConstruct
-    fun init(){
+    fun init() {
         Stripe.apiKey = secret
     }
 
     @Transactional
-    fun cancelUserSubscription(user:User){
+    fun cancelUserSubscription(user: User) {
 
         if (StringUtils.isBlank(user.subscriptionStripeId)) {
             throw UserSubscriptionStripeIdException("User is not registered to a subscription")
@@ -47,33 +48,24 @@ class PaymentService(
         subscription.cancel(params)
 
         user.subscriptionCancelPending = true
-        
+
         userService.save(user)
     }
 
     @Transactional
-    fun changeUserSubscription(user:User, newPlanStripeId: String){
+    fun changeUserSubscription(user: User, newPlanStripeId: String) {
 
         if (StringUtils.isBlank(user.subscriptionStripeId)) {
             throw UserSubscriptionStripeIdException("User is not registered to a subscription")
         }
 
+        val newMeteredStripeId = planService.findSubscriptionPlan(newPlanStripeId)?.meteredStripeId
         val subscription = Subscription.retrieve(user.subscriptionStripeId)
 
-        val item = HashMap<String,Any>()
-        item["id"] = subscription.subscriptionItems.data[0].id
-        item["plan"] = newPlanStripeId
+        updateStripeSubscription(subscription, newPlanStripeId, newMeteredStripeId)
 
-        val items = HashMap<String,Any>()
-        items["0"] = item
-
-        val params = HashMap<String,Any>()
-        params["cancel_at_period_end"] = false
-        params["items"] = items
-
-        subscription.update(params)
         user.planStripeId = newPlanStripeId
-
+        user.meteredStripeId = newMeteredStripeId
         userService.save(user)
 
     }
@@ -81,12 +73,14 @@ class PaymentService(
     @Transactional
     fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String): Subscription {
         val customer = createCustomer(user, token)
+        val meteredStripeId = planService.findSubscriptionPlan(planStripeId)?.meteredStripeId
 
-        val subscription = signUpCustomerToSubscription(customer, planStripeId)
+        val subscription = signUpCustomerToSubscription(customer, planStripeId, meteredStripeId)
 
         user.subscriptionStripeId = subscription.id
         user.subscriptionActive = true
         user.planStripeId = planStripeId
+        user.meteredStripeId = meteredStripeId
 
         // There should only be a single plan per subscriber, but this allows multiple plans. Need to ensure more than one of the same plan is on any single subscription.
         user.subscriptionItemId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
@@ -96,27 +90,22 @@ class PaymentService(
         return subscription
     }
 
-    private fun signUpCustomerToSubscription(customer: Customer, productStripeId: String): Subscription {
-        val item = HashMap<String,Any>()
-        item["plan"] = productStripeId
-        val items = HashMap<String,Any>()
-        items["0"] = item
-        val subscriptionRequest = HashMap<String,Any>()
-        subscriptionRequest["customer"] = customer.id
-        subscriptionRequest["items"] = items
+    fun getCurrentUserStripeSubscription(): Subscription {
+        return getUserStripeSubscription(userService.getCurrentUser())
+    }
 
-        try {
-            return Subscription.create(subscriptionRequest)
-        } catch (e: Exception) {
-            LOGGER.error("Failed to sign user up to subscription", e)
-            throw UserSubscriptionStripeIdException("Failed to sign user up to subscription: $productStripeId")
+    fun getUserStripeSubscription(user: User): Subscription {
+
+        if (StringUtils.isBlank(user.subscriptionStripeId)) {
+            throw UserSubscriptionStripeIdException("User is not registered to a subscription")
         }
+        return Subscription.retrieve(user.subscriptionStripeId)
     }
 
     @Transactional
-    private fun createCustomer(user: User, token : String): Customer {
+    private fun createCustomer(user: User, token: String): Customer {
 
-        if (!StringUtils.isBlank(user.customerStripeId)){
+        if (!StringUtils.isBlank(user.customerStripeId)) {
             throw UserCustomerStripeIdException("User is already registered with a payment.")
         }
 
@@ -130,5 +119,52 @@ class PaymentService(
 
         return customer
 
+    }
+
+    private fun signUpCustomerToSubscription(customer: Customer, productStripeId: String, meteredStripeId: String?): Subscription {
+
+        val subscription = HashMap<String, Any>()
+
+        val mainPlan = HashMap<String, Any>()
+        mainPlan["plan"] = productStripeId
+        subscription["0"] = mainPlan
+
+        if (meteredStripeId != null) {
+            val meteredPlan = HashMap<String, Any>()
+            meteredPlan["plan"] = meteredStripeId
+            subscription["1"] = meteredPlan
+        }
+
+        val subscriptionRequest = HashMap<String, Any>()
+        subscriptionRequest["customer"] = customer.id
+        subscriptionRequest["items"] = subscription
+
+        try {
+            return Subscription.create(subscriptionRequest)
+        } catch (e: Exception) {
+            LOGGER.error("Failed to sign user up to subscription", e)
+            throw UserSubscriptionStripeIdException("Failed to sign user up to subscription: $productStripeId")
+        }
+    }
+
+    private fun updateStripeSubscription(subscription: Subscription, newPlanStripeId: String, newMeteredStripeId: String?) {
+        val plans = HashMap<String, Any>()
+
+        val mainPlan = HashMap<String, Any>()
+        mainPlan["id"] = subscription.subscriptionItems.data[0].id
+        mainPlan["plan"] = newPlanStripeId
+        plans["0"] = mainPlan
+
+        if (newMeteredStripeId != null) {
+            val meteredPlan = HashMap<String, Any>()
+            meteredPlan["id"] = subscription.subscriptionItems.data[1].id
+            meteredPlan["plan"] = newMeteredStripeId
+            plans["1"] = meteredPlan
+        }
+
+        val params = HashMap<String, Any>()
+        params["cancel_at_period_end"] = false
+        params["items"] = plans
+        subscription.update(params)
     }
 }

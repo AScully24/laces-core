@@ -3,12 +3,15 @@ package com.laces.core.security.component.register
 import com.laces.core.email.EmailService
 import com.laces.core.responses.*
 import com.laces.core.security.component.passkey.KeyGeneratorService
+import com.laces.core.security.component.payment.PaymentService
+import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.EmailValidator
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -21,10 +24,20 @@ class RegisterService(
         val userService: UserService,
         val keyGeneratorService: KeyGeneratorService,
         val emailService: EmailService,
+        val paymentService: PaymentService,
 
         @Value("\${app.url}")
         val appUrl: String
 ) {
+
+    @Autowired(required = false)
+    var newUserAdapters: List<NewUserAdapter>? = null
+
+    @Autowired(required = false)
+    var userRemovalAdapters: List<UserRemovalAdapter>? = null
+
+    @Autowired(required = false)
+    var userConfirmedAdapters: List<UserConfirmedAdapter>? = null
 
     val emailValidator: EmailValidator = EmailValidator.getInstance(false)
 
@@ -48,8 +61,18 @@ class RegisterService(
             LOG.error("Unable to send email: ", e)
         }
 
+        newUserAdapters?.forEach { catchAdapterException { it.action(user) } }
+
         return user
 
+    }
+
+    fun registerUserWithSubscription(userSubscription: NewSubscription) {
+        val user = registerNewUser(userSubscription.newUser)
+        val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(user, userSubscription.token, userSubscription.productStripeId)
+        newUserAdapters?.forEach {
+            catchAdapterException { it.action(user, userSubscription, stripeSubscription) }
+        }
     }
 
     fun validateNewUser(newUser: NewUser) {
@@ -71,7 +94,6 @@ class RegisterService(
         }
     }
 
-
     @Transactional
     fun completeRegistration(token: String) {
 
@@ -81,9 +103,10 @@ class RegisterService(
 
         val registerToken = registerTokenRepository.findByToken(token)
         registerToken.user.isActive = true
-        userService.save(registerToken.user)
-    }
+        val confirmedUser = userService.save(registerToken.user)
 
+        userConfirmedAdapters?.forEach { catchAdapterException { it.action(confirmedUser) } }
+    }
 
     @Transactional
     @Scheduled(cron = "\${laces.unvalidatedUserCron}")
@@ -95,6 +118,17 @@ class RegisterService(
                 .filter { !it.isActive }
 
         registerTokenRepository.delete(oldTokens)
+
+        userRemovalAdapters?.forEach { catchAdapterException { it.action(oldUsers) } }
+
         userService.delete(oldUsers)
+    }
+
+    private fun catchAdapterException(action: () -> Unit) {
+        try {
+            action()
+        } catch (e: Exception) {
+            LOG.error("Adapter Failure", e)
+        }
     }
 }

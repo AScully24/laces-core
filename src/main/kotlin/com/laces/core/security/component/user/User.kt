@@ -5,9 +5,9 @@ import javax.persistence.Column
 import javax.persistence.Entity
 
 @Entity
-data class  User (
-        @Column(nullable = false,unique = true) val username: String = ""
-    ) :  BaseEntity(){
+data class User(
+        @Column(nullable = false, unique = true) val username: String = ""
+) : BaseEntity() {
 
     var password = ""
     var apiKey = ""
@@ -20,7 +20,8 @@ data class  User (
     var subscriptionStripeId = ""
     var subscriptionItemId = ""
     var planStripeId = ""
+    var meteredStripeId: String? = null
 
 }
 
-data class SubscriptionItemData(var subscriptionItemId :String = "", var planStripeId :String = "")
+data class SubscriptionItemData(var subscriptionItemId: String = "", var planStripeId: String = "")

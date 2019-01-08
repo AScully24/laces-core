@@ -16,27 +16,19 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("auth")
 @ConditionalOnProperty("app.stripe.enabled")
-class PaymentRegisterController {
+class PaymentRegisterController(
+        val registerService: RegisterService,
+        val subscriptionPlanService: SubscriptionPlanService
+) {
 
-    @Autowired
-    lateinit var registerService: RegisterService
-
-    @Autowired
-    lateinit var paymentService: PaymentService
-
-    @Autowired
-    lateinit var subscriptionPlanService: SubscriptionPlanService
-
-    @PutMapping(value = ["register"],consumes = [(MediaType.APPLICATION_JSON_VALUE)])
+    @PutMapping(value = ["register"], consumes = [(MediaType.APPLICATION_JSON_VALUE)])
     fun registerSubscription(@RequestBody userSubscription: NewSubscription): Map<String, String> {
 
-        if(!subscriptionPlanService.planStripeIdExists(userSubscription.productStripeId)){
+        if (!subscriptionPlanService.planStripeIdExists(userSubscription.productStripeId)) {
             throw ResourceNotFoundException("Unable to find product ID: ${userSubscription.productStripeId}")
         }
 
-        val user = registerService.registerNewUser(userSubscription.newUser)
-
-        paymentService.createCustomerAndSignUpToSubscription(user,userSubscription.token,userSubscription.productStripeId)
+        registerService.registerUserWithSubscription(userSubscription)
 
         return mapOf("success" to "User was successfully registered.")
     }
