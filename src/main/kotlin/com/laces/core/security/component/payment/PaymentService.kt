@@ -129,7 +129,7 @@ class PaymentService(
         mainPlan["plan"] = productStripeId
         subscription["0"] = mainPlan
 
-        if(meteredStripeId != null){
+        if (meteredStripeId != null) {
             val meteredPlan = HashMap<String, Any>()
             meteredPlan["plan"] = meteredStripeId
             subscription["1"] = meteredPlan

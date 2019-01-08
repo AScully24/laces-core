@@ -6,24 +6,24 @@ import com.stripe.model.Subscription
 import org.slf4j.LoggerFactory
 
 //Adapters should run at the end of their respective methods to give devs the option for additional actions.
-interface NewUserAdapter{
+interface NewUserAdapter {
     companion object {
         private val LOG = LoggerFactory.getLogger(NewUserAdapter::class.java)
     }
 
-    fun action(newUser: User){
+    fun action(newUser: User) {
         LOG.info("Action not implemented.")
     }
 
-    fun action(newUser: User,userSubscription: NewSubscription, stripeSubscription : Subscription){
+    fun action(newUser: User, userSubscription: NewSubscription, stripeSubscription: Subscription) {
         LOG.info("Action not implemented.")
     }
 }
 
-interface UserConfirmedAdapter{
+interface UserConfirmedAdapter {
     fun action(confirmedUser: User)
 }
 
-interface UserRemovalAdapter{
+interface UserRemovalAdapter {
     fun action(toBeRemovedUsers: List<User>)
 }

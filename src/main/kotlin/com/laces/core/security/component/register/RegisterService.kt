@@ -61,7 +61,7 @@ class RegisterService(
             LOG.error("Unable to send email: ", e)
         }
 
-        newUserAdapters?.forEach { catchAdapterException { it.action(user) }}
+        newUserAdapters?.forEach { catchAdapterException { it.action(user) } }
 
         return user
 
@@ -71,7 +71,7 @@ class RegisterService(
         val user = registerNewUser(userSubscription.newUser)
         val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(user, userSubscription.token, userSubscription.productStripeId)
         newUserAdapters?.forEach {
-            catchAdapterException {it.action(user, userSubscription, stripeSubscription)}
+            catchAdapterException { it.action(user, userSubscription, stripeSubscription) }
         }
     }
 
@@ -105,7 +105,7 @@ class RegisterService(
         registerToken.user.isActive = true
         val confirmedUser = userService.save(registerToken.user)
 
-        userConfirmedAdapters?.forEach { catchAdapterException { it.action(confirmedUser)} }
+        userConfirmedAdapters?.forEach { catchAdapterException { it.action(confirmedUser) } }
     }
 
     @Transactional
@@ -119,7 +119,7 @@ class RegisterService(
 
         registerTokenRepository.delete(oldTokens)
 
-        userRemovalAdapters?.forEach { catchAdapterException { it.action(oldUsers)} }
+        userRemovalAdapters?.forEach { catchAdapterException { it.action(oldUsers) } }
 
         userService.delete(oldUsers)
     }

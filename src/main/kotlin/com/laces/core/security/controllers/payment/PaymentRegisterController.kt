@@ -21,10 +21,10 @@ class PaymentRegisterController(
         val subscriptionPlanService: SubscriptionPlanService
 ) {
 
-    @PutMapping(value = ["register"],consumes = [(MediaType.APPLICATION_JSON_VALUE)])
+    @PutMapping(value = ["register"], consumes = [(MediaType.APPLICATION_JSON_VALUE)])
     fun registerSubscription(@RequestBody userSubscription: NewSubscription): Map<String, String> {
 
-        if(!subscriptionPlanService.planStripeIdExists(userSubscription.productStripeId)){
+        if (!subscriptionPlanService.planStripeIdExists(userSubscription.productStripeId)) {
             throw ResourceNotFoundException("Unable to find product ID: ${userSubscription.productStripeId}")
         }
 
