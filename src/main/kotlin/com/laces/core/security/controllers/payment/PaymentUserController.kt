@@ -1,10 +1,10 @@
 package com.laces.core.security.controllers.payment
 
-import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
+import com.laces.core.security.component.payment.plans.user.UserPlan
+import com.laces.core.security.component.payment.plans.user.UserPlanService
 import com.laces.core.security.component.user.UserService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
 
@@ -14,18 +14,13 @@ import org.springframework.web.bind.annotation.*
 class PaymentUserController(
         val subscriptionPlanService: SubscriptionPlanService,
         val paymentService: PaymentService,
-        val userService: UserService
+        val userService: UserService,
+        val userPlanService : UserPlanService
 
 ) {
     @GetMapping("plan")
-    fun availablePlans(): Map<String, String> {
-        val user = userService.getCurrentUser()
-        val plan = subscriptionPlanService.findSubscriptionPlan(user.planStripeId)
-                ?: throw UserSubscriptionStripeIdException("Unable to find subscription ID ${user.planStripeId} for user ${user.username}")
-
-        val message = if (user.subscriptionCancelPending) plan.name + " - Cancel Pending" else plan.name
-
-        return mapOf("message" to message)
+    fun availablePlans(): UserPlan {
+        return userPlanService.getCurrentUserPlan()
     }
 
     @PostMapping("cancel-subscription")
