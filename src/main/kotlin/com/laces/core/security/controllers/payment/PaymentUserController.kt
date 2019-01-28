@@ -1,7 +1,6 @@
 package com.laces.core.security.controllers.payment
 
 import com.laces.core.security.component.payment.PaymentService
-import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.payment.plans.user.UserPlan
 import com.laces.core.security.component.payment.plans.user.UserPlanService
 import com.laces.core.security.component.user.UserService
@@ -12,10 +11,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("api/user")
 @ConditionalOnProperty("app.stripe.enabled")
 class PaymentUserController(
-        val subscriptionPlanService: SubscriptionPlanService,
         val paymentService: PaymentService,
         val userService: UserService,
-        val userPlanService : UserPlanService
+        val userPlanService: UserPlanService
 
 ) {
     @GetMapping("plan")
@@ -39,5 +37,14 @@ class PaymentUserController(
         paymentService.changeUserSubscription(user, newPlanStripeId)
 
         return mapOf("message" to "subscription changed")
+    }
+
+    @PostMapping("reactivate-subscription")
+    fun reactivateSubscription(): Map<String, String> {
+        val user = userService.getCurrentUser()
+
+        paymentService.reactivateUserSubscriptionPendingCancellation(user)
+
+        return mapOf("message" to "subscription reactivated")
     }
 }

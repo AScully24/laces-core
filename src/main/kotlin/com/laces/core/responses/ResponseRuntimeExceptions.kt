@@ -1,6 +1,5 @@
 package com.laces.core.responses
 
-import com.laces.core.security.component.user.User
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
@@ -36,3 +35,7 @@ class EmptyPasswordException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class PasswordMismatchException(exception: String) : RuntimeException(exception)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserSubscriptionNotCancelled(exception: String) : RuntimeException(exception)
+

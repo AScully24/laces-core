@@ -1,6 +1,6 @@
 package com.laces.core.security.controllers.payment
 
-import com.laces.core.security.component.payment.StripeWebhookService
+import com.laces.core.security.component.payment.webhook.StripeWebhookService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*

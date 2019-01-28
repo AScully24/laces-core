@@ -1,8 +1,10 @@
 package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
+import com.laces.core.responses.UserSubscriptionNotCancelled
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
+import com.laces.core.security.component.user.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.stripe.Stripe
@@ -15,6 +17,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 import javax.transaction.Transactional
+import java.util.HashMap
+
 
 @Service
 @ConditionalOnProperty("app.stripe.enabled")
@@ -47,7 +51,7 @@ class PaymentService(
         params["at_period_end"] = true
         subscription.cancel(params)
 
-        user.subscriptionCancelPending = true
+        user.subscriptionState = SubscriptionState.CANCEL_PENDING
 
         userService.save(user)
     }
@@ -70,6 +74,48 @@ class PaymentService(
 
     }
 
+    fun reactivateUserSubscriptionPendingCancellation(user: User) {
+        val subscription = Subscription.retrieve(user.subscriptionStripeId)
+
+        if (!isCancelled(subscription)) {
+            LOGGER.warn("Cannot cancel subscription: ${subscription.id}")
+            throw UserSubscriptionNotCancelled("Subscription already active")
+        }
+
+        if (!subscription.cancelAtPeriodEnd) {
+            throw UserSubscriptionNotCancelled("Subscription has been completely cancelled. You must start a new subscription")
+        }
+
+        reactivateCancelPending(subscription)
+    }
+
+    private fun isCancelled(subscription: Subscription): Boolean {
+        return subscription.canceledAt != null && subscription.cancelAtPeriodEnd
+    }
+
+    private fun reactivateCancelPending(subscription: Subscription) {
+        val newSubscriptionItems = HashMap<String, Any>()
+        val previousSubscriptionItems = subscription.subscriptionItems.data
+
+        val mainPlan = HashMap<String, Any>()
+        mainPlan["id"] = previousSubscriptionItems[0].id
+        mainPlan["plan"] = previousSubscriptionItems[0].plan.id
+        newSubscriptionItems["0"] = mainPlan
+
+        if (previousSubscriptionItems[1] != null) {
+            val meteredPlan = HashMap<String, Any>()
+            meteredPlan["id"] = previousSubscriptionItems[1].id
+            meteredPlan["plan"] = previousSubscriptionItems[1].plan.id
+            newSubscriptionItems["1"] = meteredPlan
+        }
+
+        val params = HashMap<String, Any>()
+        params["cancel_at_period_end"] = false
+        params["items"] = newSubscriptionItems
+
+        subscription.update(params)
+    }
+
     @Transactional
     fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String): Subscription {
         val customer = createCustomer(user, token)
@@ -78,7 +124,7 @@ class PaymentService(
         val subscription = signUpCustomerToSubscription(customer, planStripeId, meteredStripeId)
 
         user.subscriptionStripeId = subscription.id
-        user.subscriptionActive = true
+        user.subscriptionState = SubscriptionState.ACTIVE
         user.planStripeId = planStripeId
         user.meteredStripeId = meteredStripeId
 
