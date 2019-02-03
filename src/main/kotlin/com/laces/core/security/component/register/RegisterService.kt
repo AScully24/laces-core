@@ -6,6 +6,7 @@ import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import org.apache.commons.lang3.StringUtils
@@ -102,7 +103,7 @@ class RegisterService(
         }
 
         val registerToken = registerTokenRepository.findByToken(token)
-        registerToken.user.isActive = true
+        registerToken.user.subscriptionState = SubscriptionState.ACTIVE
         val confirmedUser = userService.save(registerToken.user)
 
         userConfirmedAdapters?.forEach { catchAdapterException { it.action(confirmedUser) } }
@@ -115,7 +116,7 @@ class RegisterService(
         val oldTokens = registerTokenRepository.findAllByExpiryDateLessThan(today)
         val oldUsers = oldTokens
                 .map { it.user }
-                .filter { !it.isActive }
+                .filter { it.subscriptionState == SubscriptionState.AWAITING_CONFIRMATION }
 
         registerTokenRepository.delete(oldTokens)
 

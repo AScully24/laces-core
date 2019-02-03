@@ -3,6 +3,7 @@ package com.laces.core.security.component.payment
 import com.laces.core.responses.UserCustomerStripeIdException
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.stripe.Stripe
@@ -13,8 +14,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import java.lang.RuntimeException
+import java.util.*
 import javax.transaction.Transactional
+
 
 @Service
 @ConditionalOnProperty("app.stripe.enabled")
@@ -22,17 +25,15 @@ class PaymentService(
         @Value("\${app.stripe.secret}")
         val secret: String,
         val userService: UserService,
-        val planService: SubscriptionPlanService
-
+        val planService: SubscriptionPlanService,
+        val stripeSubscriptionValidator: StripeSubscriptionValidator
 ) {
+    init {
+        Stripe.apiKey = secret
+    }
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(PaymentService::class.java)
-    }
-
-    @PostConstruct
-    fun init() {
-        Stripe.apiKey = secret
     }
 
     @Transactional
@@ -47,7 +48,7 @@ class PaymentService(
         params["at_period_end"] = true
         subscription.cancel(params)
 
-        user.subscriptionCancelPending = true
+        user.subscriptionState = SubscriptionState.CANCEL_PENDING
 
         userService.save(user)
     }
@@ -60,8 +61,12 @@ class PaymentService(
         }
 
         val newMeteredStripeId = planService.findSubscriptionPlan(newPlanStripeId)?.meteredStripeId
-        val subscription = Subscription.retrieve(user.subscriptionStripeId)
 
+        val subscription = Subscription.retrieve(user.subscriptionStripeId)
+        if (subscription == null) {
+            LOGGER.info("Unable to change subscription for user ${user.id}. Does not exist in Stripe")
+            throw RuntimeException("You must reactivate your subscription before changing it.")
+        }
         updateStripeSubscription(subscription, newPlanStripeId, newMeteredStripeId)
 
         user.planStripeId = newPlanStripeId
@@ -71,23 +76,82 @@ class PaymentService(
     }
 
     @Transactional
+    fun reactivateUserSubscriptionPendingCancellation(user: User) {
+        val subscription = Subscription.retrieve(user.subscriptionStripeId)
+        stripeSubscriptionValidator.checkCancelPending(subscription)
+        reactivateCancelPending(subscription)
+    }
+
+    @Transactional
+    fun reactivateCancelledUserSubscription(user: User, planStripeId: String, token: String) {
+        val subscription = Subscription.retrieve(user.subscriptionStripeId)
+
+        stripeSubscriptionValidator.checkCancelled(subscription)
+
+        val customer = Customer.retrieve(user.customerStripeId)
+        updateCustomerPaymentDetails(customer, token)
+        signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user)
+    }
+
+    fun updateUserPaymentDetails(user: User, token: String) {
+        val customer = Customer.retrieve(user.customerStripeId)
+        updateCustomerPaymentDetails(customer, token)
+    }
+
+    private fun updateCustomerPaymentDetails(customer: Customer, token: String) {
+        val chargeParams = HashMap<String, Any>()
+        chargeParams["source"] = token
+        customer.update(chargeParams)
+    }
+
+    private fun reactivateCancelPending(subscription: Subscription) {
+        val newSubscriptionItems = HashMap<String, Any>()
+        val previousSubscriptionItems = subscription.subscriptionItems.data
+
+        val mainPlan = HashMap<String, Any>()
+        mainPlan["id"] = previousSubscriptionItems[0].id
+        mainPlan["plan"] = previousSubscriptionItems[0].plan.id
+        newSubscriptionItems["0"] = mainPlan
+
+        if (previousSubscriptionItems[1] != null) {
+            val meteredPlan = HashMap<String, Any>()
+            meteredPlan["id"] = previousSubscriptionItems[1].id
+            meteredPlan["plan"] = previousSubscriptionItems[1].plan.id
+            newSubscriptionItems["1"] = meteredPlan
+        }
+
+        val params = HashMap<String, Any>()
+        params["cancel_at_period_end"] = false
+        params["items"] = newSubscriptionItems
+
+        subscription.update(params)
+    }
+
+    @Transactional
     fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String): Subscription {
         val customer = createCustomer(user, token)
+
+        return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user)
+    }
+
+    private fun signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId: String, customer: Customer, user: User): Subscription {
         val meteredStripeId = planService.findSubscriptionPlan(planStripeId)?.meteredStripeId
-
         val subscription = signUpCustomerToSubscription(customer, planStripeId, meteredStripeId)
+        updateUserSubscriptionDetails(user, subscription, planStripeId, meteredStripeId, SubscriptionState.ACTIVE)
+        return subscription
+    }
 
+    private fun updateUserSubscriptionDetails(user: User, subscription: Subscription, planStripeId: String, meteredStripeId: String?, subscriptionState: SubscriptionState) {
         user.subscriptionStripeId = subscription.id
-        user.subscriptionActive = true
+        user.subscriptionState = subscriptionState
         user.planStripeId = planStripeId
         user.meteredStripeId = meteredStripeId
 
-        // There should only be a single plan per subscriber, but this allows multiple plans. Need to ensure more than one of the same plan is on any single subscription.
+        // There should only be a single plan per subscriber, but this allows multiple plans.
+        // Need to ensure more than one of the same plan is on any single subscription.
         user.subscriptionItemId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
 
         userService.save(user)
-
-        return subscription
     }
 
     fun getCurrentUserStripeSubscription(): Subscription {
@@ -167,4 +231,5 @@ class PaymentService(
         params["items"] = plans
         subscription.update(params)
     }
+
 }
