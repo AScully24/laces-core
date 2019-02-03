@@ -4,19 +4,26 @@ import com.laces.core.security.component.payment.webhook.handlers.ACTIVE
 import com.laces.core.security.component.payment.webhook.handlers.UNPAID
 import com.laces.core.security.component.payment.webhook.handlers.WebhookEvent
 import com.laces.core.security.component.payment.webhook.handlers.WebhookProcessor
-import com.laces.core.security.component.user.SubscriptionState
-import com.laces.core.security.component.user.SubscriptionState.*
+import com.laces.core.security.component.user.subscription.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState.CANCELLED
+import com.laces.core.security.component.user.subscription.SubscriptionState.CANCEL_PENDING
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
+import com.laces.core.security.component.user.subscription.UserSubscriptionStatusService
 import com.stripe.model.Event
 import com.stripe.model.Subscription
 import org.slf4j.LoggerFactory
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Service
+import java.lang.RuntimeException
 
 @Service
+@Order(0)
 @WebhookEvent("customer.subscription.updated")
 class SubscriptionUpdatedWebhook(
-        val userService: UserService
+        val userService: UserService,
+        val userSubscriptionStatusService: UserSubscriptionStatusService
 ) : WebhookProcessor {
 
     companion object {
@@ -26,10 +33,14 @@ class SubscriptionUpdatedWebhook(
     override fun process(event: Event) {
         val subscription: Subscription = event.data.`object` as Subscription
         val user = userService.getUserBySubscription(subscription.id)
+        if(user == null){
+            LOG.error("Can't process event.",event)
+            throw RuntimeException("Unable to process event.")
+        }
         when {
-            isSetToCancelledPending(subscription, user) -> cancelPendingUserSubscription(user)
-            subscription.status == UNPAID -> setUserSubscriptionToUnpaid(user)
-            isSetToActive(subscription, user) -> setUserSubscriptionToActive(user)
+            isSetToCancelledPending(subscription, user) -> userSubscriptionStatusService.cancelPendingUserSubscription(user)
+            subscription.status == UNPAID -> userSubscriptionStatusService.setUserSubscriptionToUnpaid(user)
+            isSetToActive(subscription, user) -> userSubscriptionStatusService.setUserSubscriptionToActive(user)
         }
     }
 
@@ -39,27 +50,9 @@ class SubscriptionUpdatedWebhook(
                     !subscription.cancelAtPeriodEnd &&
                     user.subscriptionState != SubscriptionState.ACTIVE
 
-    private fun cancelPendingUserSubscription(user: User) {
-        LOG.info("Cancelling user subscription: ${user.id}")
-        user.subscriptionState = CANCEL_PENDING
-        userService.save(user)
-    }
 
     private fun isSetToCancelledPending(subscription: Subscription, user: User): Boolean {
         return subscription.cancelAtPeriodEnd &&
                 (user.subscriptionState != CANCEL_PENDING || user.subscriptionState != CANCELLED)
-    }
-
-    private fun setUserSubscriptionToUnpaid(user: User) {
-        LOG.info("User subscription not paid: ${user.id}")
-        user.subscriptionState = SubscriptionState.UNPAID
-        userService.save(user)
-        userService.expireUserSessions(user)
-    }
-
-    private fun setUserSubscriptionToActive(user: User) {
-        LOG.info("User subscription activated: ${user.id}")
-        user.subscriptionState = SubscriptionState.ACTIVE
-        userService.save(user)
     }
 }

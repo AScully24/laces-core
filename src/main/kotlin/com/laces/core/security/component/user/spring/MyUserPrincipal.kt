@@ -1,9 +1,9 @@
-package com.laces.core.security.component.user
+package com.laces.core.security.component.user.spring
 
-import org.omg.PortableInterceptor.ACTIVE
+import com.laces.core.security.component.user.subscription.SubscriptionState
+import com.laces.core.security.component.user.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-
 
 class MyUserPrincipal(val user: User) : UserDetails {
 
@@ -12,7 +12,7 @@ class MyUserPrincipal(val user: User) : UserDetails {
     }
 
     override fun isEnabled(): Boolean {
-        return user.subscriptionState == SubscriptionState.ACTIVE
+        return user.subscriptionState != SubscriptionState.AWAITING_CONFIRMATION
     }
 
     override fun getUsername(): String {
@@ -28,7 +28,7 @@ class MyUserPrincipal(val user: User) : UserDetails {
     }
 
     override fun isAccountNonExpired(): Boolean {
-        return user.subscriptionState == SubscriptionState.ACTIVE
+        return true
     }
 
     override fun isAccountNonLocked(): Boolean {

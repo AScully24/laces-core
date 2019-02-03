@@ -2,7 +2,7 @@ package com.laces.core.security.component.payment.plans.user
 
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
-import com.laces.core.security.component.user.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.UserService
 import org.springframework.stereotype.Service
 

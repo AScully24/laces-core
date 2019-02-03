@@ -17,10 +17,9 @@ class SecurityController(
 ) {
 
     @PostMapping("success")
-    fun success(): ResponseEntity<Any> = ResponseEntity.ok().build()
-
-    @PostMapping("failure")
-    fun failure(): ResponseEntity<Any> = ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+    fun success(): Map<String,String> {
+        return mapOf("subscriptionState" to userService.getCurrentUser().subscriptionState.name)
+    }
 
     @GetMapping("logout")
     fun logout(): ResponseEntity<Any> = ResponseEntity.ok().build()

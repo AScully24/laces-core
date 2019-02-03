@@ -12,12 +12,20 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.core.session.SessionRegistryImpl
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
+import java.io.IOException
+import javax.servlet.http.HttpServletResponse
+import org.springframework.security.web.RedirectStrategy
+import java.util.HashMap
+import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler
+import org.springframework.security.web.authentication.AuthenticationFailureHandler
+import javax.servlet.http.HttpServletRequest
 
 
 @Configuration
 @ConfigurationProperties(prefix = "laces.security")
 class SecurityConfigAdapter(
-        val authenticationProvider: DaoAuthenticationProvider
+        val authenticationProvider: DaoAuthenticationProvider,
+        val loginFailureHandler: LoginFailureHandler
 ) : WebSecurityConfigurerAdapter() {
 
     companion object {
@@ -44,7 +52,8 @@ class SecurityConfigAdapter(
         .and()
             .formLogin().permitAll()
                 .successForwardUrl("/auth/success")
-                .failureForwardUrl("/auth/failure")
+//                .failureForwardUrl("/auth/failure")
+                .failureHandler(loginFailureHandler)
         .and()
             .logout().permitAll()
             .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
@@ -62,6 +71,19 @@ class SecurityConfigAdapter(
             .sessionRegistry(sessionRegistry())
 
     }
+//
+//    @Bean
+//    fun customAuthenticationFailureHandler(): AuthenticationFailureHandler {
+//
+//        val exceptionMappingAuthenticationFailureHandler = ExceptionMappingAuthenticationFailureHandler()
+//        val map = HashMap<Any, Any>()
+//        map["org.springframework.security.authentication.CredentialsExpiredException"] = "/resetPassword.html"
+//        exceptionMappingAuthenticationFailureHandler.setExceptionMappings(map)
+//        exceptionMappingAuthenticationFailureHandler
+//                .setRedirectStrategy { request, response, url -> response.sendRedirect(request.contextPath + url) }
+//
+//        return exceptionMappingAuthenticationFailureHandler
+//    }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.authenticationProvider(authenticationProvider)

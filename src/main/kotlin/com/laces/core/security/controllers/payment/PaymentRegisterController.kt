@@ -1,11 +1,9 @@
 package com.laces.core.security.controllers.payment
 
 import com.laces.core.responses.ResourceNotFoundException
-import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.register.RegisterService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.PutMapping

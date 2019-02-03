@@ -3,8 +3,11 @@ package com.laces.core.security.component.user
 import com.laces.core.responses.CurrentUserNotFoundException
 import com.laces.core.responses.UserNameExistsException
 import com.laces.core.security.component.passkey.KeyGeneratorService
+import com.laces.core.security.component.user.spring.MyUserPrincipal
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.session.SessionRegistry
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
@@ -44,7 +47,7 @@ class UserService(
 
     @Transactional
     fun findByUsername(userName: String): User {
-        return userRepository.findByUsername(userName)
+        return userRepository.findByUsername(userName) ?: throw UsernameNotFoundException(userName)
     }
 
     fun isUserLoggedIn(): Boolean {
@@ -66,7 +69,7 @@ class UserService(
         return userRepository.existsByUsername(userName)
     }
 
-    fun getUserBySubscription(subscriptionId: String): User {
+    fun getUserBySubscription(subscriptionId: String): User? {
         return userRepository.findBySubscriptionStripeId(subscriptionId)
     }
 

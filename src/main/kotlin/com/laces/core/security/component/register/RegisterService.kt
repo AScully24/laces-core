@@ -6,7 +6,7 @@ import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
-import com.laces.core.security.component.user.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import org.apache.commons.lang3.StringUtils

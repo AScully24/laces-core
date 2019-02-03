@@ -1,6 +1,7 @@
 package com.laces.core.security.component.user
 
 import com.laces.core.jpa.BaseEntity
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
