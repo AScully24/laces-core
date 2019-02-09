@@ -30,6 +30,6 @@ class UserController(
 
     @PostMapping("transformation-api-key")
     fun generateUserApiKey(): Map<String,String> {
-        return mapOf("transformation-api-key" to userService.generateNewApiKeyForCurrentUser())
+        return mapOf("apiKey" to userService.generateNewApiKeyForCurrentUser())
     }
 }
