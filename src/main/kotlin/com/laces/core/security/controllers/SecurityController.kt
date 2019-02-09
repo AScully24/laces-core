@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.lang.RuntimeException
 
 @RestController
 @RequestMapping("auth")
@@ -16,10 +17,9 @@ class SecurityController(
 ) {
 
     @PostMapping("success")
-    fun success(): ResponseEntity<Any> = ResponseEntity.ok().build()
-
-    @PostMapping("failure")
-    fun failure(): ResponseEntity<Any> = ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+    fun success(): Map<String,String> {
+        return mapOf("subscriptionState" to userService.getCurrentUser().subscriptionState.name)
+    }
 
     @GetMapping("logout")
     fun logout(): ResponseEntity<Any> = ResponseEntity.ok().build()
@@ -37,9 +37,12 @@ class SecurityController(
 
     @GetMapping("/logged-in")
     fun isLoggedIn(): ResponseEntity<Any> {
-        if (this.userService.isUserLoggedIn()) {
-            return ResponseEntity.ok().build()
-        }
+        try {
+            if (userService.isUserLoggedIn()) {
+                return ResponseEntity.ok().build()
+            }
+        }catch (re : RuntimeException){}
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
     }
 }
