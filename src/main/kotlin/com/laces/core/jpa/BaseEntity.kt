@@ -9,7 +9,7 @@ import javax.persistence.MappedSuperclass
 abstract class BaseEntity : HasId {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     override var id: Long? = null
 
 }

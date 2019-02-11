@@ -28,7 +28,17 @@ class ResourceNotFoundException(exception: String) : RuntimeException(exception)
 class EmailExistsException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
+class InvalidEmailException(exception: String) : RuntimeException(exception)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
 class EmptyPasswordException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class PasswordMismatchException(exception: String) : RuntimeException(exception)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserSubscriptionNotCancelled(exception: String) : RuntimeException(exception)
+
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserSubscriptionCancelPending(exception: String) : RuntimeException(exception)
+

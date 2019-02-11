@@ -1,28 +1,27 @@
 package com.laces.core.security.component.user
 
-import com.laces.core.responses.*
+import com.laces.core.responses.CurrentUserNotFoundException
+import com.laces.core.responses.UserNameExistsException
 import com.laces.core.security.component.passkey.KeyGeneratorService
-import org.apache.commons.lang3.StringUtils
-import org.springframework.beans.factory.annotation.Autowired
+import com.laces.core.security.component.user.spring.MyUserPrincipal
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.session.SessionRegistry
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
 
 @Service
-class UserService {
-
-    @Autowired
-    lateinit var userRepository : UserRepository
-
-    @Autowired
-    lateinit var passwordEncoder : PasswordEncoder
-
-    @Autowired
-    lateinit var keyGeneratorService: KeyGeneratorService
+class UserService(
+        val userRepository: UserRepository,
+        val passwordEncoder: PasswordEncoder,
+        val keyGeneratorService: KeyGeneratorService,
+        val sessionRegistry: SessionRegistry
+) {
 
     @Transactional
-    fun delete (users:List<User>) {
+    fun delete(users: List<User>) {
         userRepository.delete(users)
     }
 
@@ -41,17 +40,17 @@ class UserService {
         val user = User(newUser.username)
         user.password = passwordEncoder.encode(newUser.password)
         user.apiKey = keyGeneratorService.generateNewPassKey()
-        user.isActive = isActive
+        user.subscriptionState = if (isActive ) SubscriptionState.ACTIVE else SubscriptionState.AWAITING_CONFIRMATION
         return save(user)
 
     }
 
     @Transactional
     fun findByUsername(userName: String): User {
-        return userRepository.findByUsername(userName)
+        return userRepository.findByUsername(userName) ?: throw UsernameNotFoundException(userName)
     }
 
-    fun isUserLoggedIn() : Boolean{
+    fun isUserLoggedIn(): Boolean {
         getCurrentUser()
         return true
     }
@@ -66,31 +65,25 @@ class UserService {
         return findByUsername(principal.username)
     }
 
-    fun validateNewUser(newUser: NewUser) {
-
-        if(existsByName(newUser.username)){
-            throw EmailExistsException("Email already exists: ${newUser.username}")
-        }
-
-        if(StringUtils.isBlank(newUser.password)){
-            throw EmptyPasswordException("Password cannot be blank.")
-        }
-
-        if(newUser.password != newUser.confirmPassword){
-            throw PasswordMismatchException("Passwords do not match.")
-        }
-    }
-
-    fun existsByName(userName:String) : Boolean{
+    fun existsByName(userName: String): Boolean {
         return userRepository.existsByUsername(userName)
     }
 
-    fun getUserBySubscription(subscriptionId: String): User {
+    fun getUserBySubscription(subscriptionId: String): User? {
         return userRepository.findBySubscriptionStripeId(subscriptionId)
     }
 
     fun generateNewApiKeyForCurrentUser(): String {
         return generateNewUserApiKey(getCurrentUser())
+    }
+
+    fun expireUserSessions(user: User) {
+        sessionRegistry.allPrincipals
+                .filterIsInstance(MyUserPrincipal::class.java)
+                .filter { it.username == user.username }
+                .flatMap { sessionRegistry.getAllSessions(it, true) }
+                .forEach { it.expireNow() }
+
     }
 
     private fun generateNewUserApiKey(user: User): String {
