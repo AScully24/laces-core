@@ -13,7 +13,7 @@
         <kotlin.version>1.2.61</kotlin.version>
         <swagger.version>2.4.0</swagger.version>
         <kotlin.compiler.incremental>false</kotlin.compiler.incremental>
-        <spring-boot.version>2.0.4.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -21,6 +21,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
 

@@ -1,6 +1,7 @@
 package com.laces.core.security.component.config
 
-import org.springframework.beans.factory.annotation.Autowired
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,39 +17,50 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 
 
 @Configuration
-@ConfigurationProperties(prefix="laces.security")
-class SecurityConfigAdapter : WebSecurityConfigurerAdapter(){
+@ConfigurationProperties(prefix = "laces.security")
+class SecurityConfigAdapter(
+        @Value("\${laces.security.includeDefaultAllowed:true}")
+        val includeDefaultAllowed: Boolean,
+        val authenticationProvider: DaoAuthenticationProvider,
+        val loginFailureHandler: LoginFailureHandler
+) : WebSecurityConfigurerAdapter() {
 
-    @Autowired
-    lateinit var authenticationProvider : DaoAuthenticationProvider
+    companion object {
+        private val LOG = LoggerFactory.getLogger(SecurityConfigAdapter::class.java)
+    }
+
+    val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
+            , "/auth/**", "/h2-console/**", "/swagger.html", "/swagger-ui.html", "/swagger-resources/**",
+            "/v2/**", "/webjars/**", "/register-confirmation/**", "/payment/**","/stripe/webhook")
 
     var allowedUrls = mutableListOf<String>()
 
     override fun configure(http: HttpSecurity) {
-        allowedUrls.addAll(listOf("/built/**", "/*.js", "/*.jsx","/*.jpg", "/main.css"
-                ,"/auth/**","/h2-console/**","/swagger.html","/swagger-ui.html","/swagger-resources/**",
-                "/v2/**","/webjars/**", "/register-confirmation/**","/subscription/**"))
-
+        if (includeDefaultAllowed) {
+            allowedUrls.addAll(defaultUrls)
+            LOG.info("Including default URLs.")
+        }
+        LOG.info("Allowed URLS: $allowedUrls")
         http
             .authorizeRequests()
-                .antMatchers(*allowedUrls.toTypedArray()).permitAll()
+            .antMatchers(*allowedUrls.toTypedArray()).permitAll()
             .anyRequest().authenticated()
-            .and()
-                .formLogin()
+        .and()
+            .formLogin()
                 .permitAll()
                 .successForwardUrl("/auth/success")
-                .failureForwardUrl("/auth/failure")
-            .and()
-                .logout()
-                .permitAll()
-                .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
-            .and()
+                .failureHandler(loginFailureHandler)
+        .and()
+            .logout().permitAll()
+            .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
+        .and()
                 // Needed to access the h2-console. This should be remove in final deployment
-                .headers()
-                .frameOptions()
-                .disable()
-            .and()
-                .csrf().disable()
+            .headers()
+            .frameOptions()
+            .disable()
+        .and()
+            .csrf().disable()
+
         http
             .sessionManagement()
             .maximumSessions(1)
