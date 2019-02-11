@@ -118,7 +118,7 @@ class RegisterService(
                 .map { it.user }
                 .filter { it.subscriptionState == SubscriptionState.AWAITING_CONFIRMATION }
 
-        registerTokenRepository.delete(oldTokens)
+        registerTokenRepository.deleteAll(oldTokens)
 
         userRemovalAdapters?.forEach { catchAdapterException { it.action(oldUsers) } }
 
