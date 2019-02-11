@@ -14,7 +14,7 @@ import java.time.ZoneOffset
 
 
 @Service
-private class MeteredUsageServiceImpl(
+public class MeteredUsageServiceImpl(
         @Value("\${app.stripe.secret}")
         val secret: String,
         val userService: UserService
