@@ -30,8 +30,7 @@ class SecurityConfigAdapter(
     }
 
     val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
-            , "/auth/**", "/h2-console/**", "/swagger.html", "/swagger-ui.html", "/swagger-resources/**",
-            "/v2/**", "/webjars/**", "/register-confirmation/**", "/payment/**","/stripe/webhook")
+            , "/auth/**", "/webjars/**", "/register-confirmation/**", "/payment/**","/stripe/webhook")
 
     var allowedUrls = mutableListOf<String>()
 
