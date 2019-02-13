@@ -33,7 +33,6 @@ class SecurityConfigAdapter(
             , "/auth/**", "/webjars/**", "/register-confirmation/**", "/payment/**","/stripe/webhook")
 
     var allowedUrls = mutableListOf<String>()
-
     override fun configure(http: HttpSecurity) {
         if (includeDefaultAllowed) {
             allowedUrls.addAll(defaultUrls)
@@ -66,11 +65,11 @@ class SecurityConfigAdapter(
             .sessionRegistry(sessionRegistry())
 
     }
-
+  
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.authenticationProvider(authenticationProvider)
     }
-
+  
     /**
      * As of Spring Boot 2, this bean needs to be explicitly exposed.
      */
