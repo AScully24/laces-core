@@ -2,12 +2,10 @@ package com.laces.core.security.component.user
 
 import com.laces.core.jpa.BaseEntity
 import com.laces.core.security.component.user.subscription.SubscriptionState
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
+import javax.persistence.*
 
 @Entity
+@Table(name="users")
 data class User(
         @Column(nullable = false, unique = true) val username: String = ""
 ) : BaseEntity() {
