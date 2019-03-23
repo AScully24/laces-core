@@ -13,7 +13,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.core.session.SessionRegistryImpl
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 
 
 @Configuration
@@ -50,14 +53,14 @@ class SecurityConfigAdapter(
                 .failureHandler(loginFailureHandler)
         .and()
             .logout().permitAll()
+                .clearAuthentication(true)
+                .addLogoutHandler(CookieClearingLogoutHandler())
             .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
         .and()
-                // Needed to access the h2-console. This should be remove in final deployment
-            .headers()
-            .frameOptions()
-            .disable()
+        .exceptionHandling()
+            .authenticationEntryPoint(Http403ForbiddenEntryPoint())
         .and()
-            .csrf().disable()
+            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 
         http
             .sessionManagement()
@@ -65,11 +68,11 @@ class SecurityConfigAdapter(
             .sessionRegistry(sessionRegistry())
 
     }
-  
+
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.authenticationProvider(authenticationProvider)
     }
-  
+
     /**
      * As of Spring Boot 2, this bean needs to be explicitly exposed.
      */
