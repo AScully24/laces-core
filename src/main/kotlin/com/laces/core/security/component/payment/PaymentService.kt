@@ -3,9 +3,10 @@ package com.laces.core.security.component.payment
 import com.laces.core.responses.UserCustomerStripeIdException
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
-import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
+import com.laces.core.security.component.user.subscription.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import com.stripe.Stripe
 import com.stripe.model.Customer
 import com.stripe.model.Subscription
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 import java.util.*
 import javax.transaction.Transactional
 
@@ -90,7 +90,7 @@ class PaymentService(
 
         val customer = Customer.retrieve(user.customerStripeId)
         updateCustomerPaymentDetails(customer, token)
-        signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user)
+        signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user, ACTIVE)
     }
 
     fun updateUserPaymentDetails(user: User, token: String) {
@@ -128,16 +128,20 @@ class PaymentService(
     }
 
     @Transactional
-    fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String): Subscription {
+    fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
         val customer = createCustomer(user, token)
-
-        return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user)
+        return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user, subscriptionState)
     }
 
-    private fun signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId: String, customer: Customer, user: User): Subscription {
+    private fun signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(
+            planStripeId: String,
+            customer: Customer,
+            user: User,
+            subscriptionState: SubscriptionState
+    ): Subscription {
         val meteredStripeId = planService.findSubscriptionPlan(planStripeId)?.meteredStripeId
         val subscription = signUpCustomerToSubscription(customer, planStripeId, meteredStripeId)
-        updateUserSubscriptionDetails(user, subscription, planStripeId, meteredStripeId, SubscriptionState.ACTIVE)
+        updateUserSubscriptionDetails(user, subscription, planStripeId, meteredStripeId, subscriptionState)
         return subscription
     }
 

@@ -6,9 +6,9 @@ import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
-import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.EmailValidator
 import org.slf4j.LoggerFactory
@@ -70,7 +70,13 @@ class RegisterService(
 
     fun registerUserWithSubscription(userSubscription: NewSubscription) {
         val user = registerNewUser(userSubscription.newUser)
-        val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(user, userSubscription.token, userSubscription.productStripeId)
+
+        val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(user,
+                userSubscription.token,
+                userSubscription.productStripeId,
+                SubscriptionState.AWAITING_CONFIRMATION
+        )
+
         newUserAdapters?.forEach {
             catchAdapterException { it.action(user, userSubscription, stripeSubscription) }
         }

@@ -1,7 +1,7 @@
 package com.laces.core.security.component.user.spring
 
-import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
+import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
@@ -12,7 +12,7 @@ class MyUserPrincipal(val user: User) : UserDetails {
     }
 
     override fun isEnabled(): Boolean {
-        return user.subscriptionState != SubscriptionState.AWAITING_CONFIRMATION
+        return user.subscriptionState != AWAITING_CONFIRMATION
     }
 
     override fun getUsername(): String {

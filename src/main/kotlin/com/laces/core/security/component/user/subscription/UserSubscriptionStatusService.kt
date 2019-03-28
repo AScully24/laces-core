@@ -2,6 +2,7 @@ package com.laces.core.security.component.user.subscription
 
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
+import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
@@ -32,7 +33,7 @@ class UserSubscriptionStatusService(
     @Transactional
     fun setUserSubscriptionToActive(user: User) {
         LOG.info("User subscription activated: ${user.id}")
-        user.subscriptionState = SubscriptionState.ACTIVE
+        user.subscriptionState = ACTIVE
         userService.save(user)
     }
 
