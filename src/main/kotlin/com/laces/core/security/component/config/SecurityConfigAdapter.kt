@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 
-
 @Configuration
 @ConfigurationProperties(prefix = "laces.security")
 class SecurityConfigAdapter(
@@ -30,10 +29,12 @@ class SecurityConfigAdapter(
 
     companion object {
         private val LOG = LoggerFactory.getLogger(SecurityConfigAdapter::class.java)
+        private const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
+
     }
 
     val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
-            , "/auth/**", "/webjars/**", "/register-confirmation/**", "/payment/**","/stripe/webhook")
+            , "/auth/**", "/webjars/**", "/register-confirmation/**", "/payment/**", STRIPE_WEBHOOK_URL)
 
     var allowedUrls = mutableListOf<String>()
     override fun configure(http: HttpSecurity) {
@@ -62,7 +63,7 @@ class SecurityConfigAdapter(
         .and()
             .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/stripe/webhook")
+                .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
 
         http
             .sessionManagement()
