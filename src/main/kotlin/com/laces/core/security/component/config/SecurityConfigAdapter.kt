@@ -62,9 +62,9 @@ class SecurityConfigAdapter(
             .authenticationEntryPoint(Http403ForbiddenEntryPoint())
         .and()
             .csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
-
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+        LOG.info("CSRF Has been updated to allow Stripe")
         http
             .sessionManagement()
             .maximumSessions(1)
