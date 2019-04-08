@@ -60,7 +60,9 @@ class SecurityConfigAdapter(
         .exceptionHandling()
             .authenticationEntryPoint(Http403ForbiddenEntryPoint())
         .and()
-            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringAntMatchers("/stripe/webhook")
 
         http
             .sessionManagement()
