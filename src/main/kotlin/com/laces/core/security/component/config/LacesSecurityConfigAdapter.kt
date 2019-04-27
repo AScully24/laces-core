@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
@@ -18,9 +19,10 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 
+@Order(0)
 @Configuration
 @ConfigurationProperties(prefix = "laces.security")
-class SecurityConfigAdapter(
+class LacesSecurityConfigAdapter(
         @Value("\${laces.security.includeDefaultAllowed:true}")
         val includeDefaultAllowed: Boolean,
         val authenticationProvider: DaoAuthenticationProvider,
@@ -28,21 +30,23 @@ class SecurityConfigAdapter(
 ) : WebSecurityConfigurerAdapter() {
 
     companion object {
-        private val LOG = LoggerFactory.getLogger(SecurityConfigAdapter::class.java)
-        private const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
-
+        private val LOG = LoggerFactory.getLogger(LacesSecurityConfigAdapter::class.java)
+        const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
     }
 
-    val defaultUrls = listOf("/built/**", "/*.js", "/*.jsx", "/*.jpg", "/main.css"
-            , "/auth/**", "/webjars/**", "/register-confirmation/**", "/payment/**", STRIPE_WEBHOOK_URL)
+    val defaultUrls = listOf("/*.js", "/*.jsx", "/*.jpg", "/*.css"
+            ,"/auth/**", "/register-confirmation/**", "/payment/**", STRIPE_WEBHOOK_URL)
 
     var allowedUrls = mutableListOf<String>()
     override fun configure(http: HttpSecurity) {
+
         if (includeDefaultAllowed) {
             allowedUrls.addAll(defaultUrls)
             LOG.info("Including default URLs.")
         }
+
         LOG.info("Allowed URLS: $allowedUrls")
+
         http
             .authorizeRequests()
             .antMatchers(*allowedUrls.toTypedArray()).permitAll()
@@ -64,12 +68,6 @@ class SecurityConfigAdapter(
             .csrf()
                 .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-
-        http
-            .sessionManagement()
-            .maximumSessions(1)
-            .sessionRegistry(sessionRegistry())
-
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
