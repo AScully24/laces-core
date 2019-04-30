@@ -129,14 +129,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration> <!-- Live Reloading of HTML files-->
-                    <addResources>true</addResources>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
