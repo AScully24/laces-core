@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 class UserCustomerStripeIdException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.CONFLICT)
-class UserNameExistsException(userName: String) : RuntimeException("Unable to find username $userName")
+class UserNameExistsException(userName: String) : RuntimeException("User name exists: $userName")
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class UserSubscriptionStripeIdException(exception: String) : RuntimeException(exception)
