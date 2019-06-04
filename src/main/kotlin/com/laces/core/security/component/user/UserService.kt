@@ -45,7 +45,6 @@ class UserService(
 
     }
 
-    @Transactional
     fun findByUsername(userName: String): User {
         return userRepository.findByUsername(userName) ?: throw UsernameNotFoundException(userName)
     }
