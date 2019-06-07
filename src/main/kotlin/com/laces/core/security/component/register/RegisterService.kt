@@ -40,6 +40,10 @@ class RegisterService(
     @Autowired(required = false)
     var userConfirmedAdapters: List<UserConfirmedAdapter>? = null
 
+    @Autowired
+    var additionalInfoValidator : AdditionalInfoValidator? = null
+
+
     val emailValidator: EmailValidator = EmailValidator.getInstance(false)
 
     companion object {
@@ -99,6 +103,8 @@ class RegisterService(
         if (newUser.password != newUser.confirmPassword) {
             throw PasswordMismatchException("Passwords do not match.")
         }
+
+        additionalInfoValidator?.validate(newUser.additionalInfo)
     }
 
     @Transactional

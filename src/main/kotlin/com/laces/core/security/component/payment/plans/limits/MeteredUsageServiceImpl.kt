@@ -2,26 +2,24 @@ package com.laces.core.security.component.payment.plans.limits
 
 import com.laces.core.security.component.user.UserService
 import com.stripe.Stripe
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import com.stripe.model.Invoice
 import com.stripe.model.UsageRecord
 import com.stripe.net.RequestOptions
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.HashMap
-import com.stripe.model.Invoice
 import java.time.ZoneOffset
+import java.util.*
 
 
 @Service
-public class MeteredUsageServiceImpl(
+class MeteredUsageServiceImpl(
         @Value("\${app.stripe.secret}")
-        val secret: String,
+        secret: String,
         val userService: UserService
 ) : MeteredUsageService {
 
-    @PostConstruct
-    fun init() {
+    init {
         Stripe.apiKey = secret
     }
 

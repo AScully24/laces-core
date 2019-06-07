@@ -23,7 +23,7 @@ import javax.transaction.Transactional
 @ConditionalOnProperty("app.stripe.enabled")
 class PaymentService(
         @Value("\${app.stripe.secret}")
-        val secret: String,
+        secret: String,
         val userService: UserService,
         val planService: SubscriptionPlanService,
         val stripeSubscriptionValidator: StripeSubscriptionValidator

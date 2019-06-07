@@ -19,4 +19,7 @@ data class User(
     var subscriptionItemId = ""
     var planStripeId = ""
     var meteredStripeId: String? = null
+
+    @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
+    var additionalInfo: AdditionalInfo? = null
 }

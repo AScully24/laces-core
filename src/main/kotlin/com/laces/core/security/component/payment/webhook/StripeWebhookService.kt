@@ -16,7 +16,7 @@ import javax.transaction.Transactional
 @Service
 class StripeWebhookService(
         @Value("\${app.stripe.secret}")
-        val secret: String,
+        secret: String,
 
         @Value("\${app.stripe.webhook.signing-secret}")
         val signingSecret: String

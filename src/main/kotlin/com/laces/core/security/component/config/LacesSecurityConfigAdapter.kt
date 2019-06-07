@@ -35,7 +35,7 @@ class LacesSecurityConfigAdapter(
     }
 
     val defaultUrls = listOf("/*.js", "/*.jsx", "/*.jpg", "/*.css"
-            ,"/auth/**", "/register-confirmation/**", "/payment/**", STRIPE_WEBHOOK_URL)
+            ,"/auth/**", "/register-confirmation/**", "/payment/**","/api/form/public", STRIPE_WEBHOOK_URL)
 
     var allowedUrls = mutableListOf<String>()
     override fun configure(http: HttpSecurity) {
