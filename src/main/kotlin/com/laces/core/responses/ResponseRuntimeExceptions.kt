@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 class UserCustomerStripeIdException(exception: String) : RuntimeException(exception)
 
 @ResponseStatus(HttpStatus.CONFLICT)
-class UserNameExistsException(userName: String) : RuntimeException("Unable to find username $userName")
+class UserNameExistsException(userName: String) : RuntimeException("User name exists: $userName")
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class UserSubscriptionStripeIdException(exception: String) : RuntimeException(exception)
@@ -42,3 +42,5 @@ class UserSubscriptionNotCancelled(exception: String) : RuntimeException(excepti
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class UserSubscriptionCancelPending(exception: String) : RuntimeException(exception)
 
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class InvalidAdditionalInfoKey(key: String) : RuntimeException("Unable to find validator for key: $key")

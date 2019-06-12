@@ -41,11 +41,11 @@ class UserService(
         user.password = passwordEncoder.encode(newUser.password)
         user.apiKey = keyGeneratorService.generateNewPassKey()
         user.subscriptionState = if (isActive ) SubscriptionState.ACTIVE else SubscriptionState.AWAITING_CONFIRMATION
+        user.additionalInfo = newUser.additionalInfo
         return save(user)
 
     }
 
-    @Transactional
     fun findByUsername(userName: String): User {
         return userRepository.findByUsername(userName) ?: throw UsernameNotFoundException(userName)
     }
