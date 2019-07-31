@@ -7,6 +7,7 @@ import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
+import com.laces.core.security.component.user.subscription.SubscriptionState.CANCEL_PENDING
 import com.stripe.Stripe
 import com.stripe.model.Customer
 import com.stripe.model.Subscription
@@ -48,9 +49,8 @@ class PaymentService(
         params["at_period_end"] = true
         subscription.cancel(params)
 
-        user.subscriptionState = SubscriptionState.CANCEL_PENDING
-
-        userService.save(user)
+        val updatedUser = user.copy(subscriptionState = CANCEL_PENDING)
+        userService.save(updatedUser)
     }
 
     @Transactional
@@ -69,9 +69,10 @@ class PaymentService(
         }
         updateStripeSubscription(subscription, newPlanStripeId, newMeteredStripeId)
 
-        user.planStripeId = newPlanStripeId
-        user.meteredStripeId = newMeteredStripeId
-        userService.save(user)
+        userService.save(user.copy(
+                planStripeId = newPlanStripeId,
+                meteredStripeId = newMeteredStripeId
+        ))
 
     }
 
@@ -129,8 +130,8 @@ class PaymentService(
 
     @Transactional
     fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
-        val customer = createCustomer(user, token)
-        return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, user, subscriptionState)
+        val (customer, updatedUser) = createCustomer(user, token)
+        return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, updatedUser, subscriptionState)
     }
 
     private fun signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(
@@ -146,16 +147,19 @@ class PaymentService(
     }
 
     private fun updateUserSubscriptionDetails(user: User, subscription: Subscription, planStripeId: String, meteredStripeId: String?, subscriptionState: SubscriptionState) {
-        user.subscriptionStripeId = subscription.id
-        user.subscriptionState = subscriptionState
-        user.planStripeId = planStripeId
-        user.meteredStripeId = meteredStripeId
 
         // There should only be a single plan per subscriber, but this allows multiple plans.
         // Need to ensure more than one of the same plan is on any single subscription.
-        user.subscriptionItemId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
+        val planId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
 
-        userService.save(user)
+        val updatedUser = user.copy(subscriptionStripeId = subscription.id,
+                subscriptionState = subscriptionState,
+                planStripeId = planStripeId,
+                meteredStripeId = meteredStripeId,
+                subscriptionItemId = planId
+        )
+
+        userService.save(updatedUser)
     }
 
     fun getCurrentUserStripeSubscription(): Subscription {
@@ -171,7 +175,7 @@ class PaymentService(
     }
 
     @Transactional
-    private fun createCustomer(user: User, token: String): Customer {
+    private fun createCustomer(user: User, token: String): Pair<Customer, User> {
 
         if (!StringUtils.isBlank(user.customerStripeId)) {
             throw UserCustomerStripeIdException("User is already registered with a payment.")
@@ -182,10 +186,10 @@ class PaymentService(
         chargeParams["email"] = user.username
 
         val customer = Customer.create(chargeParams)
-        user.customerStripeId = customer.id
-        userService.save(user)
+        val updatedUser = user.copy(customerStripeId = customer.id)
+        val savedUser = userService.save(updatedUser)
 
-        return customer
+        return Pair(customer, savedUser)
 
     }
 

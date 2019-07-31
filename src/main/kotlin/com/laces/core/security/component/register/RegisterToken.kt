@@ -16,7 +16,7 @@ data class RegisterToken (
 
         @JoinColumn
         @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER)
-        val user: User = User("empty"),
+        val user: User = User(username = "empty"),
 
         var expiryDate: Date = calculateExpiryDate()
 ) :  BaseEntity() {

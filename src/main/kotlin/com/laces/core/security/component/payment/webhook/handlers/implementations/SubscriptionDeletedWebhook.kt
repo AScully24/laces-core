@@ -2,9 +2,9 @@ package com.laces.core.security.component.payment.webhook.handlers.implementatio
 
 import com.laces.core.security.component.payment.webhook.handlers.WebhookEvent
 import com.laces.core.security.component.payment.webhook.handlers.WebhookProcessor
-import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
+import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.stripe.model.Event
 import com.stripe.model.Subscription
 import org.slf4j.LoggerFactory
@@ -36,8 +36,7 @@ class SubscriptionDeletedWebhook(
             LOG.error("Unable to find user by subscription ${subscription.id}")
             throw RuntimeException("Unable to find subscription")
         }
-        user.subscriptionState = SubscriptionState.CANCELLED
-        userService.save(user)
-        return user
+
+        return userService.save(user.copy(subscriptionState = SubscriptionState.CANCELLED))
     }
 }

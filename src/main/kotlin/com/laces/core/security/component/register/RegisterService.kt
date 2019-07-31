@@ -9,6 +9,7 @@ import com.laces.core.security.component.user.NewUser
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.laces.core.security.component.user.subscription.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.EmailValidator
 import org.slf4j.LoggerFactory
@@ -115,8 +116,8 @@ class RegisterService(
         }
 
         val registerToken = registerTokenRepository.findByToken(token)
-        registerToken.user.subscriptionState = SubscriptionState.ACTIVE
-        val confirmedUser = userService.save(registerToken.user)
+        val user = registerToken.user
+        val confirmedUser = userService.save(user.copy(subscriptionState = ACTIVE))
 
         userConfirmedAdapters?.forEach { catchAdapterException { it.action(confirmedUser) } }
     }

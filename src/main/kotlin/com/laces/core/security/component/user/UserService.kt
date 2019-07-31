@@ -4,7 +4,8 @@ import com.laces.core.responses.CurrentUserNotFoundException
 import com.laces.core.responses.UserNameExistsException
 import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.user.spring.MyUserPrincipal
-import com.laces.core.security.component.user.subscription.SubscriptionState
+import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
+import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -37,11 +38,12 @@ class UserService(
             throw UserNameExistsException(newUser.username)
         }
 
-        val user = User(newUser.username)
-        user.password = passwordEncoder.encode(newUser.password)
-        user.apiKey = keyGeneratorService.generateNewPassKey()
-        user.subscriptionState = if (isActive ) SubscriptionState.ACTIVE else SubscriptionState.AWAITING_CONFIRMATION
-        user.additionalInfo = newUser.additionalInfo
+        val user = User(username = newUser.username,
+                password = passwordEncoder.encode(newUser.password),
+                apiKey = keyGeneratorService.generateNewPassKey(),
+                subscriptionState = if (isActive) ACTIVE else AWAITING_CONFIRMATION,
+                additionalInfo = newUser.additionalInfo
+        )
         return save(user)
 
     }
@@ -87,8 +89,8 @@ class UserService(
     }
 
     private fun generateNewUserApiKey(user: User): String {
-        user.apiKey = keyGeneratorService.generateNewPassKey()
-        save(user)
-        return user.apiKey
+        val updatedUser = user.copy(apiKey = keyGeneratorService.generateNewPassKey())
+        return save(updatedUser)
+                .apiKey
     }
 }
