@@ -7,15 +7,10 @@ import java.lang.annotation.Target;
 
 public class FormAnnotations {
 
-	public enum FormType {
-	    INPUT, OUTPUT, RULE, GENERAL, REGISTER
-	}
-
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Form {
-		String formatType() default "";
-		FormType settingsType() default FormType.RULE;
+		String[] groups() default {};
 		boolean isPublic() default false;
 	}
 }
