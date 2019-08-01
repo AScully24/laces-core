@@ -8,10 +8,10 @@ import com.laces.core.security.component.user.NewUser.Companion.REGISTER
 class NewUser {
     var username= ""
 
-    @JsonSchemaFormat("password")
+    @field:JsonSchemaFormat("password")
     var password = ""
 
-    @JsonSchemaFormat("password")
+    @field:JsonSchemaFormat("password")
     var confirmPassword = ""
 
     var additionalInfo : AdditionalInfo? = null
