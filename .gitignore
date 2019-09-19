@@ -75,4 +75,5 @@ hs_err_pid*
 
 
 ################### Project Specific ###################
+!.mvn/**
 /core-spring-boot-starter.iml
