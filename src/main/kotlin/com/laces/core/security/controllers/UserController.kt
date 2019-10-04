@@ -19,7 +19,8 @@ class UserController(
         val currentUser = userService.getCurrentUser()
         return LacesUserDetailsDto(
                 currentUser.subscriptionState,
-                planService.getCurrentUserPlan().planName
+                planService.getCurrentUserPlan().planName,
+                currentUser.additionalInfo?.toDto()
         )
     }
 
@@ -28,7 +29,7 @@ class UserController(
         return mapOf("apiKey" to userService.getCurrentUser().apiKey)
     }
 
-    @PostMapping("transformation-api-key")
+    @PostMapping("transformation-api-keyCurrentSubscription")
     fun generateUserApiKey(): Map<String,String> {
         return mapOf("apiKey" to userService.generateNewApiKeyForCurrentUser())
     }

@@ -46,10 +46,6 @@ class UserService(
 
     }
 
-    fun findByUsername(userName: String): User {
-        return userRepository.findByUsername(userName) ?: throw UsernameNotFoundException(userName)
-    }
-
     fun isUserLoggedIn(): Boolean {
         getCurrentUser()
         return true
@@ -62,7 +58,7 @@ class UserService(
         val principal = auth.principal as? MyUserPrincipal
                 ?: throw CurrentUserNotFoundException("Unable to find current user")
 
-        return findByUsername(principal.username)
+        return principal.user
     }
 
     fun existsByName(userName: String): Boolean {

@@ -19,4 +19,6 @@ abstract class AdditionalInfo : HasId {
             allocationSize = 1)
     override var id: Long? = null
 
+    abstract fun toDto() : Map<String, Any>
+
 }

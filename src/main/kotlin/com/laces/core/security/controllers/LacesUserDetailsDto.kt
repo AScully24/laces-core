@@ -4,5 +4,6 @@ import com.laces.core.security.component.user.subscription.SubscriptionState
 
 data class LacesUserDetailsDto (
         val subscriptionState: SubscriptionState,
-        val planName: String
+        val planName: String,
+        val additionalInfo: Map<String, Any>?
 )
