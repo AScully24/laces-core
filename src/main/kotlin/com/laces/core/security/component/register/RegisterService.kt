@@ -59,7 +59,7 @@ class RegisterService(
         val passKey = keyGeneratorService.generateNewPassKey()
         registerTokenRepository.save(RegisterToken(passKey, user))
         try {
-            emailService.sendSimpleMessage(newUser.username, "Registration Confirmation",
+            emailService.sendSimpleMessageFromRegistration(newUser.username, "Registration Confirmation",
                     "Please follow the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey")
 
         } catch (e: Exception) {

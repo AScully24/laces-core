@@ -21,10 +21,15 @@ internal class FormController(
 
     @GetMapping("public")
     fun publicForms(@RequestParam(required = false) formType: String?): List<MetaDataDTO> {
-        if(formType != null){
+        if (formType != null) {
             dtoSettingsMetaDataService.findAllPublicSettings(formType)
         }
         return dtoSettingsMetaDataService.findAllPublicSettings()
+    }
+
+    @GetMapping("public/single")
+    fun publicFormByName(@RequestParam name: String): MetaDataDTO {
+        return dtoSettingsMetaDataService.findPublicFormByName(name)
     }
 
     // Regex added to the end of GetMapping display to deal with periods in the class path.

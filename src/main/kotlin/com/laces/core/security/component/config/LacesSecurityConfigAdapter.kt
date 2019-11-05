@@ -34,8 +34,18 @@ class LacesSecurityConfigAdapter(
         const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
     }
 
-    val defaultUrls = listOf("/*.js", "/*.jsx", "/*.jpg", "/*.css"
-            ,"/auth/**", "/register-confirmation/**", "/payment/**","/api/form/public", STRIPE_WEBHOOK_URL)
+    val defaultUrls = listOf(
+            "/*.js",
+            "/*.jsx",
+            "/*.jpg",
+            "/*.css"
+            , "/auth/**",
+            "/register-confirmation/**",
+            "/payment/**",
+            "/api/form/public/**",
+            "/api/contact/**",
+            STRIPE_WEBHOOK_URL
+    )
 
     var allowedUrls = mutableListOf<String>()
     override fun configure(http: HttpSecurity) {
@@ -48,24 +58,24 @@ class LacesSecurityConfigAdapter(
         LOG.info("Allowed URLS: $allowedUrls")
 
         http
-            .authorizeRequests()
-            .antMatchers(*allowedUrls.toTypedArray()).permitAll()
-            .anyRequest().authenticated()
-        .and()
-            .formLogin()
+                .authorizeRequests()
+                .antMatchers(*allowedUrls.toTypedArray()).permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
                 .permitAll()
                 .successForwardUrl("/auth/success")
                 .failureHandler(loginFailureHandler)
-        .and()
-            .logout().permitAll()
+                .and()
+                .logout().permitAll()
                 .clearAuthentication(true)
                 .addLogoutHandler(CookieClearingLogoutHandler())
-            .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
-        .and()
-        .exceptionHandling()
-            .authenticationEntryPoint(Http403ForbiddenEntryPoint())
-        .and()
-            .csrf()
+                .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(Http403ForbiddenEntryPoint())
+                .and()
+                .csrf()
                 .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
     }

@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import org.apache.commons.lang3.StringUtils
 import org.springframework.stereotype.Service
 
 @Service
@@ -30,16 +28,6 @@ class JsonSchemaCustomGenerator{
         return jsonSchemaGenerator.generateJsonSchema(clazz)
     }
 
-
-    fun getSchemaTitle(clazz: Class<*>): String {
-        val schemaTitle = clazz.getAnnotation(JsonSchemaTitle::class.java)
-        return if (schemaTitle == null) {
-            val splitClassName = StringUtils.splitByCharacterTypeCamelCase(clazz.simpleName)
-            StringUtils.join(splitClassName, " ")
-        } else {
-            schemaTitle.value
-        }
-    }
 
     private fun removeSchemaVersion(jsonSchema: JsonNode): JsonNode {
         (jsonSchema as ObjectNode).remove("\$schema")

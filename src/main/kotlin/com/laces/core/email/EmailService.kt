@@ -9,13 +9,17 @@ import org.springframework.stereotype.Component
 class EmailService(
         val emailSender: JavaMailSender,
         @Value("\${laces.security.registration.from-email}")
-        val fromEmail: String
+        val fromRegisterEmail: String
 ) {
-    fun sendSimpleMessage(to: String, subject: String, text: String) {
+    fun sendSimpleMessageFromRegistration(to: String, subject: String, text: String) {
+        sendSimpleMessage(to,fromRegisterEmail, subject,text)
+    }
+
+    fun sendSimpleMessage(to: String, from: String, subject: String, text: String) {
         val message = SimpleMailMessage()
         message.setTo(to)
         message.subject = subject
-        message.from = fromEmail
+        message.from = from
         message.text = text
         emailSender.send(message)
     }
