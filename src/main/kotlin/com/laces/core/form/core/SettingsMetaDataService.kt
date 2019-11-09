@@ -34,11 +34,11 @@ class SettingsMetaDataService(
     private fun populateData(classes: List<Class<*>>): List<FormMetaData> {
         return classes.map {
             val formAnnotation = it.getAnnotation(Form::class.java)
-            val schemaTitle = jsonSchemaCustomGenerator.getSchemaTitle(it)
+            val name = getSchemaTitle(it)
             val modifiedSchema = jsonSchemaCustomGenerator.constructModifiedSchema(it)
 
             FormMetaData(
-                    schemaTitle,
+                    name,
                     it.canonicalName,
                     modifiedSchema,
                     formAnnotation.isPublic,

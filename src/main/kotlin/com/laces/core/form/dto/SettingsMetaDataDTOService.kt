@@ -40,6 +40,10 @@ class SettingsMetaDataDTOService(
         return findAllPublicSettings().filter { it.groups.contains(group)}
     }
 
+    fun findPublicFormByName(name : String): MetaDataDTO {
+        return findAllPublicSettings().first { it.name == name }
+    }
+
     fun findSchemaForClass(className: String): JsonNode? {
         return metaDataDtos
                 .first { it.fullClassPath.equals(className, ignoreCase = true) }
