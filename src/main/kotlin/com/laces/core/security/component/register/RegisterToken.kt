@@ -12,13 +12,13 @@ import javax.persistence.OneToOne
 @Entity
 data class RegisterToken (
 
-        var token: String = "N/A",
+        val token: String = "N/A",
 
         @JoinColumn
         @OneToOne(targetEntity = User::class, fetch = FetchType.EAGER)
-        val user: User = User("empty"),
+        val user: User = User(username = "empty"),
 
-        var expiryDate: Date = calculateExpiryDate()
+        val expiryDate: Date = calculateExpiryDate()
 ) :  BaseEntity() {
 
     companion object {

@@ -1,25 +1,33 @@
 package com.laces.core.security.component.user
 
-import com.laces.core.jpa.BaseEntity
+import com.laces.core.jpa.HasId
 import com.laces.core.security.component.user.subscription.SubscriptionState
 import javax.persistence.*
+import javax.persistence.GenerationType.IDENTITY
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 data class User(
-        @Column(nullable = false, unique = true) val username: String = ""
-) : BaseEntity() {
-    var password = ""
-    var apiKey = ""
 
-    @Enumerated(EnumType.STRING)
-    var subscriptionState : SubscriptionState = SubscriptionState.AWAITING_CONFIRMATION
-    var customerStripeId = ""
-    var subscriptionStripeId = ""
-    var subscriptionItemId = ""
-    var planStripeId = ""
-    var meteredStripeId: String? = null
+        @Id
+        @GeneratedValue(strategy = IDENTITY)
+        override var id: Long? = null,
 
-    @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
-    var additionalInfo: AdditionalInfo? = null
-}
+        @Column(nullable = false, unique = true)
+        val username: String = "",
+
+        val password: String = "",
+        val apiKey: String = "",
+
+        @Enumerated(EnumType.STRING)
+        val subscriptionState: SubscriptionState = SubscriptionState.AWAITING_CONFIRMATION,
+        val customerStripeId: String = "",
+        val subscriptionStripeId: String = "",
+        val subscriptionItemId: String = "",
+        val planStripeId: String = "",
+        val meteredStripeId: String? = null,
+
+        @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
+        val additionalInfo: AdditionalInfo? = null
+
+) : HasId

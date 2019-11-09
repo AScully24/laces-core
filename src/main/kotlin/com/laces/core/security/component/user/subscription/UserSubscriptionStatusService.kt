@@ -2,7 +2,7 @@ package com.laces.core.security.component.user.subscription
 
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
-import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
+import com.laces.core.security.component.user.subscription.SubscriptionState.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
@@ -18,23 +18,21 @@ class UserSubscriptionStatusService(
     @Transactional
     fun cancelPendingUserSubscription(user: User) {
         LOG.info("Cancelling user subscription: ${user.id}")
-        user.subscriptionState = SubscriptionState.CANCEL_PENDING
-        userService.save(user)
+        userService.save(user.copy(subscriptionState = CANCEL_PENDING))
     }
 
     @Transactional
     fun setUserSubscriptionToUnpaid(user: User) {
         LOG.info("User subscription not paid: ${user.id}")
-        user.subscriptionState = SubscriptionState.UNPAID
-        userService.save(user)
+        val updatedUser = user.copy(subscriptionState = UNPAID)
+        userService.save(updatedUser)
         userService.expireUserSessions(user)
     }
 
     @Transactional
     fun setUserSubscriptionToActive(user: User) {
         LOG.info("User subscription activated: ${user.id}")
-        user.subscriptionState = ACTIVE
-        userService.save(user)
+        userService.save(user.copy(subscriptionState = ACTIVE))
     }
 
 }
