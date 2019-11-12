@@ -12,5 +12,6 @@ public class FormAnnotations {
 	public @interface Form {
 		String[] groups() default {};
 		boolean isPublic() default false;
+		String name() default "";
 	}
 }

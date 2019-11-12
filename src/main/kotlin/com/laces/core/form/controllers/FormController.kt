@@ -1,7 +1,7 @@
 package com.laces.core.form.controllers
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.laces.core.form.dto.MetaDataDTO
+import com.laces.core.form.dto.FormMetaDataResponse
 import com.laces.core.form.dto.SettingsMetaDataDTOService
 import org.springframework.web.bind.annotation.*
 
@@ -12,7 +12,7 @@ internal class FormController(
 ) {
 
     @GetMapping("settings")
-    fun settingsSchemas(@RequestParam(required = false) formType: String?): List<MetaDataDTO> {
+    fun settingsSchemas(@RequestParam(required = false) formType: String?): List<FormMetaDataResponse> {
         if (formType == null) {
             return dtoSettingsMetaDataService.getMetaData()
         }
@@ -20,7 +20,7 @@ internal class FormController(
     }
 
     @GetMapping("public")
-    fun publicForms(@RequestParam(required = false) formType: String?): List<MetaDataDTO> {
+    fun publicForms(@RequestParam(required = false) formType: String?): List<FormMetaDataResponse> {
         if (formType != null) {
             dtoSettingsMetaDataService.findAllPublicSettings(formType)
         }
@@ -28,7 +28,7 @@ internal class FormController(
     }
 
     @GetMapping("public/single")
-    fun publicFormByName(@RequestParam name: String): MetaDataDTO {
+    fun publicFormByName(@RequestParam name: String): FormMetaDataResponse {
         return dtoSettingsMetaDataService.findPublicFormByName(name)
     }
 

@@ -13,3 +13,8 @@ fun getSchemaTitle(clazz: Class<*>): String {
     val schemaTitle = clazz.getAnnotation(JsonSchemaTitle::class.java)
     return schemaTitle?.value ?: getClassAsReadableName(clazz)
 }
+
+fun getSchemaName(clazz: Class<*>): String {
+    val schemaTitle = clazz.getAnnotation(FormAnnotations.Form::class.java)
+    return schemaTitle?.name ?: getSchemaTitle(clazz).ifBlank { getClassAsReadableName(clazz) }
+}

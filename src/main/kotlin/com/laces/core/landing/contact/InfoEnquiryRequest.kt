@@ -9,8 +9,8 @@ import com.laces.core.form.core.generateNodeArray
 import com.laces.core.landing.contact.InfoEnquirySubject.MAILING_LIST
 import java.util.function.Supplier
 
-@Form(groups = [CONTACT], isPublic = true)
-@JsonSchemaTitle("General Enquiry")
+@Form(groups = [CONTACT], isPublic = true, name="General Enquiry")
+@JsonSchemaTitle("")
 data class InfoEnquiryRequest(
         @field:JsonProperty(value = "First Name", required = true)
         val firstName: String,
