@@ -10,42 +10,42 @@ class SettingsMetaDataDTOService(
         settingsMetaDataService: SettingsMetaDataService
 ) {
 
-    private val metaDataDtos: List<MetaDataDTO>
+    private val formMetaDataResponses: List<FormMetaDataResponse>
 
     init {
         val mapper = ModelMapper()
-        metaDataDtos = settingsMetaDataService.getSettingsMetaData()
-                .map { mapper.map(it, MetaDataDTO::class.java) }
+        formMetaDataResponses = settingsMetaDataService.getSettingsMetaData()
+                .map { mapper.map(it, FormMetaDataResponse::class.java) }
     }
 
-    fun getMetaData(): List<MetaDataDTO> {
-        return metaDataDtos
+    fun getMetaData(): List<FormMetaDataResponse> {
+        return formMetaDataResponses
     }
 
-    fun getMetaData(group: String): List<MetaDataDTO> {
-        return metaDataDtos.filter {
+    fun getMetaData(group: String): List<FormMetaDataResponse> {
+        return formMetaDataResponses.filter {
             it.groups.any { itGroup -> itGroup == group }
         }
     }
 
-    fun getMetaDataContainingAll(vararg groups: String): List<MetaDataDTO> {
-        return metaDataDtos.filter { it.groups.containsAll(groups.toList())}
+    fun getMetaDataContainingAll(vararg groups: String): List<FormMetaDataResponse> {
+        return formMetaDataResponses.filter { it.groups.containsAll(groups.toList())}
     }
 
-    fun findAllPublicSettings(): List<MetaDataDTO> {
-        return metaDataDtos.filter { it.public }
+    fun findAllPublicSettings(): List<FormMetaDataResponse> {
+        return formMetaDataResponses.filter { it.public }
     }
 
-    fun findAllPublicSettings(group : String): List<MetaDataDTO> {
+    fun findAllPublicSettings(group : String): List<FormMetaDataResponse> {
         return findAllPublicSettings().filter { it.groups.contains(group)}
     }
 
-    fun findPublicFormByName(name : String): MetaDataDTO {
+    fun findPublicFormByName(name : String): FormMetaDataResponse {
         return findAllPublicSettings().first { it.name == name }
     }
 
     fun findSchemaForClass(className: String): JsonNode? {
-        return metaDataDtos
+        return formMetaDataResponses
                 .first { it.fullClassPath.equals(className, ignoreCase = true) }
                 .jsonSchema
     }

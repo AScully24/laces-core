@@ -22,11 +22,11 @@ import javax.transaction.Transactional
 
 @Service
 class RegisterService(
-        val registerTokenRepository: RegisterTokenRepository,
-        val userService: UserService,
-        val keyGeneratorService: KeyGeneratorService,
-        val emailService: EmailService,
-        val paymentService: PaymentService,
+        private val registerTokenRepository: RegisterTokenRepository,
+        private val userService: UserService,
+        private val keyGeneratorService: KeyGeneratorService,
+        private val emailService: EmailService,
+        private val paymentService: PaymentService,
 
         @Value("\${app.url}")
         val appUrl: String
@@ -43,7 +43,6 @@ class RegisterService(
 
     @Autowired
     var additionalInfoValidator : AdditionalInfoValidator? = null
-
 
     val emailValidator: EmailValidator = EmailValidator.getInstance(false)
 

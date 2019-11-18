@@ -8,7 +8,7 @@ import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator
 import org.springframework.stereotype.Service
 
 @Service
-class JsonSchemaCustomGenerator{
+class JsonSchemaCustomGenerator {
 
     fun constructModifiedSchema(clazz: Class<*>): JsonNode {
         val originalSchema: JsonNode = removeSchemaVersion(createSchema(clazz))
