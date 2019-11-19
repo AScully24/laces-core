@@ -48,6 +48,7 @@ class LacesSecurityConfigAdapter(
     )
 
     var allowedUrls = mutableListOf<String>()
+    var authenticatedUrls = mutableListOf<String>()
     override fun configure(http: HttpSecurity) {
 
         if (includeDefaultAllowed) {
@@ -56,25 +57,27 @@ class LacesSecurityConfigAdapter(
         }
 
         LOG.info("Allowed URLS: $allowedUrls")
+        LOG.info("Authenticated URLS: $authenticatedUrls")
 
         http
                 .authorizeRequests()
                 .antMatchers(*allowedUrls.toTypedArray()).permitAll()
+                .antMatchers(*authenticatedUrls.toTypedArray()).authenticated()
                 .anyRequest().authenticated()
-                .and()
+            .and()
                 .formLogin()
                 .permitAll()
                 .successForwardUrl("/auth/success")
                 .failureHandler(loginFailureHandler)
-                .and()
+            .and()
                 .logout().permitAll()
                 .clearAuthentication(true)
                 .addLogoutHandler(CookieClearingLogoutHandler())
                 .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
-                .and()
+            .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(Http403ForbiddenEntryPoint())
-                .and()
+            .and()
                 .csrf()
                 .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
