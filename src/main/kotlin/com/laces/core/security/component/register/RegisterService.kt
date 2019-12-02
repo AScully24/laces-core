@@ -1,7 +1,11 @@
 package com.laces.core.security.component.register
 
 import com.laces.core.email.EmailService
-import com.laces.core.responses.*
+import com.laces.core.email.isValidEmail
+import com.laces.core.responses.EmailExistsException
+import com.laces.core.responses.EmptyPasswordException
+import com.laces.core.responses.PasswordMismatchException
+import com.laces.core.responses.UserRegistrationTokenException
 import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
@@ -11,7 +15,6 @@ import com.laces.core.security.component.user.UserService
 import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.validator.routines.EmailValidator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -43,8 +46,6 @@ class RegisterService(
 
     @Autowired
     var additionalInfoValidator : AdditionalInfoValidator? = null
-
-    val emailValidator: EmailValidator = EmailValidator.getInstance(false)
 
     companion object {
         private val LOG = LoggerFactory.getLogger(RegisterService::class.java)
@@ -92,9 +93,7 @@ class RegisterService(
             throw EmailExistsException("Email already exists: ${newUser.username}")
         }
 
-        if (!emailValidator.isValid(newUser.username)) {
-            throw InvalidEmailException("Email is not in a valid format: ${newUser.username}")
-        }
+        isValidEmail(newUser.username)
 
         if (StringUtils.isBlank(newUser.password)) {
             throw EmptyPasswordException("Password cannot be blank.")
