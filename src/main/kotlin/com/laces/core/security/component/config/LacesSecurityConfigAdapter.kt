@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.RequestMatcher
 
 @Order(0)
 @Configuration
@@ -81,6 +82,10 @@ class LacesSecurityConfigAdapter(
                 .csrf()
                 .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .and()
+                .requiresChannel()
+                .requestMatchers(RequestMatcher{it.getHeader("X-Forwarded-Proto") != null})
+                .requiresSecure()
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
