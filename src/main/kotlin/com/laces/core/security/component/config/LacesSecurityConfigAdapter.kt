@@ -37,10 +37,9 @@ class LacesSecurityConfigAdapter(
 
     val defaultUrls = listOf(
             "/*.js",
-            "/*.jsx",
             "/*.jpg",
-            "/*.css"
-            , "/auth/**",
+            "/*.css",
+            "/auth/**",
             "/register-confirmation/**",
             "/payment/**",
             "/api/form/public/**",
@@ -64,7 +63,6 @@ class LacesSecurityConfigAdapter(
                 .authorizeRequests()
                 .antMatchers(*allowedUrls.toTypedArray()).permitAll()
                 .antMatchers(*authenticatedUrls.toTypedArray()).authenticated()
-                .anyRequest().authenticated()
             .and()
                 .formLogin()
                 .permitAll()
