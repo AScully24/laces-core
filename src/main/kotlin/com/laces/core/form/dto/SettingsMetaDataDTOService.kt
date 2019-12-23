@@ -28,19 +28,27 @@ class SettingsMetaDataDTOService(
         }
     }
 
+    fun getFlow(flowName: String): FlowResponse {
+        val flowStepResponses = formMetaDataResponses.filter { it.flowSteps.any { flowStep -> flowStep == flowStep } }
+                .flatMap { it.flowSteps.map { flowStep -> FlowStepResponse(flowStep.stepNumber, it.jsonSchema) } }
+                .sortedBy { it.stepNumber }
+
+        return FlowResponse(flowStepResponses)
+    }
+
     fun getMetaDataContainingAll(vararg groups: String): List<FormMetaDataResponse> {
-        return formMetaDataResponses.filter { it.groups.containsAll(groups.toList())}
+        return formMetaDataResponses.filter { it.groups.containsAll(groups.toList()) }
     }
 
     fun findAllPublicSettings(): List<FormMetaDataResponse> {
         return formMetaDataResponses.filter { it.public }
     }
 
-    fun findAllPublicSettings(group : String): List<FormMetaDataResponse> {
-        return findAllPublicSettings().filter { it.groups.contains(group)}
+    fun findAllPublicSettings(group: String): List<FormMetaDataResponse> {
+        return findAllPublicSettings().filter { it.groups.contains(group) }
     }
 
-    fun findPublicFormByName(name : String): FormMetaDataResponse {
+    fun findPublicFormByName(name: String): FormMetaDataResponse {
         return findAllPublicSettings().first { it.name == name }
     }
 

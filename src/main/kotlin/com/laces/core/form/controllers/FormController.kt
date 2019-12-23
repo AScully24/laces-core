@@ -1,6 +1,7 @@
 package com.laces.core.form.controllers
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FormMetaDataResponse
 import com.laces.core.form.dto.SettingsMetaDataDTOService
 import org.springframework.web.bind.annotation.*
@@ -17,6 +18,11 @@ internal class FormController(
             return dtoSettingsMetaDataService.getMetaData()
         }
         return dtoSettingsMetaDataService.getMetaData(formType)
+    }
+
+    @GetMapping("flows")
+    fun flows(@RequestParam flowName: String): FlowResponse {
+        return dtoSettingsMetaDataService.getFlow(flowName)
     }
 
     @GetMapping("public")

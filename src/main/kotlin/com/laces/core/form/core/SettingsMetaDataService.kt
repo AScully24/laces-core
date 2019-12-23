@@ -1,6 +1,7 @@
 package com.laces.core.form.core
 
 import com.laces.core.form.core.FormAnnotations.Form
+import com.laces.core.form.core.steps.FlowStep
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Service
@@ -37,14 +38,15 @@ class SettingsMetaDataService(
             val title = getSchemaTitle(it)
             val name = getSchemaName(it)
             val modifiedSchema = jsonSchemaCustomGenerator.constructModifiedSchema(it)
-
+            val flowSteps = formAnnotation.flow.map { flow -> FlowStep(flow.name, flow.stepNumber) }
             FormMetaData(
                     name,
                     title,
                     it.canonicalName,
                     modifiedSchema,
                     formAnnotation.isPublic,
-                    formAnnotation.groups.asList()
+                    formAnnotation.groups.asList(),
+                    flowSteps
             )
         }
     }
