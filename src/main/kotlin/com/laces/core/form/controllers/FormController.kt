@@ -20,7 +20,7 @@ internal class FormController(
         return dtoSettingsMetaDataService.getMetaData(formType)
     }
 
-    @GetMapping("flows")
+    @GetMapping("public/flows")
     fun flows(@RequestParam flowName: String): FlowResponse {
         return dtoSettingsMetaDataService.getFlow(flowName)
     }

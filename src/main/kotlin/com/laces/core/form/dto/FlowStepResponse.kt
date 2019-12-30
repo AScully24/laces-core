@@ -8,5 +8,6 @@ data class FlowResponse(
 
 data class FlowStepResponse(
         val stepNumber: Int,
-        val jsonSchema: JsonNode
+        val title: String,
+        val jsonSchema: List<JsonNode>
 )

@@ -7,7 +7,7 @@ import javax.persistence.GenerationType.TABLE
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "classType")
+@JsonTypeInfo(visible = true, use = JsonTypeInfo.Id.CLASS,  property = "classType")
 abstract class AdditionalInfo : HasId {
 
     @Id

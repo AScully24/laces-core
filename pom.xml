@@ -68,7 +68,7 @@
         <dependency>
             <groupId>com.kjetland</groupId>
             <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
-            <version>1.0.31</version> <!--Cannot upgrade to 1.0.32. It ignores JsonTypeInfo on generation.-->
+            <version>1.0.36</version> <!--Cannot upgrade to 1.0.32. It ignores JsonTypeInfo on generation.-->
         </dependency>
 
         <dependency>

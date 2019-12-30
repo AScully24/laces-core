@@ -7,14 +7,14 @@ import org.springframework.stereotype.Service
 
 @Service
 class SettingsMetaDataDTOService(
-        settingsMetaDataService: SettingsMetaDataService
+        private val settingsMetaDataService: SettingsMetaDataService
 ) {
 
     private val formMetaDataResponses: List<FormMetaDataResponse>
 
     init {
         val mapper = ModelMapper()
-        formMetaDataResponses = settingsMetaDataService.getSettingsMetaData()
+        formMetaDataResponses = settingsMetaDataService.settingsMetaData
                 .map { mapper.map(it, FormMetaDataResponse::class.java) }
     }
 
@@ -23,18 +23,22 @@ class SettingsMetaDataDTOService(
     }
 
     fun getMetaData(group: String): List<FormMetaDataResponse> {
-        return formMetaDataResponses.filter {
-            it.groups.any { itGroup -> itGroup == group }
-        }
+        return formMetaDataResponses.filter { it.groups.any { itGroup -> itGroup == group } }
     }
 
     fun getFlow(flowName: String): FlowResponse {
-        val flowStepResponses = formMetaDataResponses.filter { it.flowSteps.any { flowStep -> flowStep == flowStep } }
-                .flatMap { it.flowSteps.map { flowStep -> FlowStepResponse(flowStep.stepNumber, it.jsonSchema) } }
-                .sortedBy { it.stepNumber }
+
+        val flowStepResponses = settingsMetaDataService.getFlow(flowName)
+//        formMetaDataResponses
+//                .filter { isInFlow(it, flowName) }
+//                .groupBy { it.flowSteps.first { flowStep -> flowName == flowStep.flow }.stepNumber  }
+//                .map { (stepNumber, formSchemas) -> FlowStepResponse(stepNumber, flowName,formSchemas.map { it.jsonSchema }) }
 
         return FlowResponse(flowStepResponses)
     }
+
+    private fun isInFlow(it: FormMetaDataResponse, flowName: String) =
+            it.flowSteps.any { flowStep -> flowStep.flow == flowName }
 
     fun getMetaDataContainingAll(vararg groups: String): List<FormMetaDataResponse> {
         return formMetaDataResponses.filter { it.groups.containsAll(groups.toList()) }

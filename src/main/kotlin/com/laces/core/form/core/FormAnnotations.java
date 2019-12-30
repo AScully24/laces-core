@@ -13,13 +13,5 @@ public class FormAnnotations {
 		String[] groups() default {};
 		boolean isPublic() default false;
 		String name() default "";
-		Flow[] flow() default {};
-	}
-
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface Flow {
-		String name();
-		int stepNumber();
 	}
 }
