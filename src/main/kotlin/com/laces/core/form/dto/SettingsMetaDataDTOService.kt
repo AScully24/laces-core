@@ -1,20 +1,20 @@
 package com.laces.core.form.dto
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.laces.core.form.core.SettingsMetaDataService
+import com.laces.core.form.core.FormMetaDataService
+import com.laces.core.responses.ResourceNotFoundException
 import org.modelmapper.ModelMapper
 import org.springframework.stereotype.Service
 
 @Service
 class SettingsMetaDataDTOService(
-        private val settingsMetaDataService: SettingsMetaDataService
+        private val formMetaDataService: FormMetaDataService
 ) {
 
     private val formMetaDataResponses: List<FormMetaDataResponse>
 
     init {
         val mapper = ModelMapper()
-        formMetaDataResponses = settingsMetaDataService.settingsMetaData
+        formMetaDataResponses = formMetaDataService.settingsMetaData
                 .map { mapper.map(it, FormMetaDataResponse::class.java) }
     }
 
@@ -27,18 +27,8 @@ class SettingsMetaDataDTOService(
     }
 
     fun getFlow(flowName: String): FlowResponse {
-
-        val flowStepResponses = settingsMetaDataService.getFlow(flowName)
-//        formMetaDataResponses
-//                .filter { isInFlow(it, flowName) }
-//                .groupBy { it.flowSteps.first { flowStep -> flowName == flowStep.flow }.stepNumber  }
-//                .map { (stepNumber, formSchemas) -> FlowStepResponse(stepNumber, flowName,formSchemas.map { it.jsonSchema }) }
-
-        return FlowResponse(flowStepResponses)
+        return formMetaDataService.getFlow(flowName) ?: throw ResourceNotFoundException("Unable to find flow: $flowName")
     }
-
-    private fun isInFlow(it: FormMetaDataResponse, flowName: String) =
-            it.flowSteps.any { flowStep -> flowStep.flow == flowName }
 
     fun getMetaDataContainingAll(vararg groups: String): List<FormMetaDataResponse> {
         return formMetaDataResponses.filter { it.groups.containsAll(groups.toList()) }
@@ -55,12 +45,4 @@ class SettingsMetaDataDTOService(
     fun findPublicFormByName(name: String): FormMetaDataResponse {
         return findAllPublicSettings().first { it.name == name }
     }
-
-    fun findSchemaForClass(className: String): JsonNode? {
-        return formMetaDataResponses
-                .first { it.fullClassPath.equals(className, ignoreCase = true) }
-                .jsonSchema
-    }
-
-
 }

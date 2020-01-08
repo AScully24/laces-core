@@ -1,10 +1,12 @@
 package com.laces.core.form.controllers
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FormMetaDataResponse
 import com.laces.core.form.dto.SettingsMetaDataDTOService
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("api/form")
@@ -36,11 +38,5 @@ internal class FormController(
     @GetMapping("public/single")
     fun publicFormByName(@RequestParam name: String): FormMetaDataResponse {
         return dtoSettingsMetaDataService.findPublicFormByName(name)
-    }
-
-    // Regex added to the end of GetMapping display to deal with periods in the class path.
-    @GetMapping("{type:.+}")
-    fun schemaByType(@PathVariable("type") type: String): JsonNode? {
-        return dtoSettingsMetaDataService.findSchemaForClass(type)
     }
 }

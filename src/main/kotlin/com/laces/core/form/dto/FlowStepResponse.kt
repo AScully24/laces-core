@@ -1,13 +1,13 @@
 package com.laces.core.form.dto
 
-import com.fasterxml.jackson.databind.JsonNode
+import com.laces.core.form.core.FormMetaData
 
 data class FlowResponse(
+        val title: String,
         val flowSteps : List<FlowStepResponse>
 )
 
 data class FlowStepResponse(
-        val stepNumber: Int,
-        val title: String,
-        val jsonSchema: List<JsonNode>
+        val formMetaData: List<FormMetaData>,
+        val title: String
 )

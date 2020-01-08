@@ -1,12 +1,13 @@
 package com.laces.core.form.core
 
-class Flow (
+class Flow(
         val flowName: String,
         val title: String,
-        val steps : List<FlowStep>
+        val steps: List<FlowStep>
 )
 
-class FlowStep(
+data class FlowStep(
         val formName: String?,
-        val group: String?
+        val group: String?,
+        val title: String
 )
