@@ -1,8 +1,8 @@
 package com.laces.core.form.core
 
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import org.apache.commons.lang3.StringUtils.join
-import org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase
+import com.laces.core.form.core.FormAnnotations.Form
+import org.apache.commons.lang3.StringUtils.*
 
 fun getClassAsReadableName(clazz: Class<*>): String {
     val splitClassName = splitByCharacterTypeCamelCase(clazz.simpleName)
@@ -15,6 +15,6 @@ fun getSchemaTitle(clazz: Class<*>): String {
 }
 
 fun getSchemaName(clazz: Class<*>): String {
-    val schemaTitle = clazz.getAnnotation(FormAnnotations.Form::class.java)
-    return schemaTitle?.name ?: getSchemaTitle(clazz).ifBlank { getClassAsReadableName(clazz) }
+    val schemaTitle = clazz.getAnnotation(Form::class.java)
+    return schemaTitle?.name ?: uncapitalize(clazz.simpleName)
 }

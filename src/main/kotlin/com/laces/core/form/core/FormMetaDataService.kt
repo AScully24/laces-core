@@ -25,11 +25,10 @@ class FormMetaDataService(
         settingsMetaData = settingsClasses.map { createFormMetaData(it) }
 
         flowMap = flows.map { flow ->
-
             val flowResponses = flow.steps
                     .map { flowStep -> createFlowStepResponse(flowStep, settingsMetaData) }
 
-            flow.flowName to FlowResponse(flow.title, flowResponses)
+            flow.flowName to FlowResponse(flow.title, flow.submissionUrl, flowResponses)
         }.toMap()
 
         LOGGER.info("Number of forms: " + settingsMetaData.count())
@@ -39,14 +38,16 @@ class FormMetaDataService(
         val filteredMetaData = metaData
                 .filter { formMetaData -> isInFlow(formMetaData, flowStep) }
 
-        return FlowStepResponse(filteredMetaData, flowStep.title)
+        val fieldName = if (filteredMetaData.size == 1){
+            filteredMetaData[0].name
+        } else flowStep.group ?: "NOT_SET"
+
+        return FlowStepResponse(filteredMetaData, flowStep.title, fieldName, flowStep.asArray)
     }
 
 
     private fun isInFlow(formMetaData: FormMetaData, flowStep: FlowStep): Boolean {
-
         val group = flowStep.group
-
         val formName = flowStep.formName
 
         return formMetaData.groups.contains(group) || formMetaData.name == formName
