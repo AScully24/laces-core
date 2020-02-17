@@ -30,7 +30,7 @@ internal class FormController(
     @GetMapping("public")
     fun publicForms(@RequestParam(required = false) formType: String?): List<FormMetaDataResponse> {
         if (formType != null) {
-            dtoSettingsMetaDataService.findAllPublicSettings(formType)
+            return dtoSettingsMetaDataService.findAllPublicSettings(formType)
         }
         return dtoSettingsMetaDataService.findAllPublicSettings()
     }
