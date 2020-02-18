@@ -38,7 +38,7 @@ class FormMetaDataService(
         val filteredMetaData = metaData
                 .filter { formMetaData -> isInFlow(formMetaData, flowStep) }
 
-        val fieldName = if (filteredMetaData.size == 1){
+        val fieldName = if (filteredMetaData.size == 1 && filteredMetaData[0].name.isNotBlank()){
             filteredMetaData[0].name
         } else flowStep.group ?: "NOT_SET"
 
