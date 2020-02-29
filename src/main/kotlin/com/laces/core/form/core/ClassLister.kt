@@ -4,9 +4,22 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.RegexPatternTypeFilter
 import java.util.regex.Pattern
 
-class ClassLister {
+class ClassLister(
+        private val packages: List<String>
+) {
 
-    fun listAllClassesInPackage(packageName: String): List<Class<*>> {
+    fun <T : Annotation>  allClassesWithAnnotation(
+            clazz: Class<T>,
+            filter: (T) -> Boolean = {true}
+    ): List<Class<*>> {
+        return packages
+                .flatMap { listAllClassesInPackage(it) }
+                .filter { it.isAnnotationPresent(clazz) }
+                .filter { filter(it.getAnnotation(clazz)) }
+
+    }
+
+    private fun listAllClassesInPackage(packageName: String): List<Class<*>> {
         // create scanner and disable default filters (that is the 'false' argument)
         val provider = ClassPathScanningCandidateComponentProvider(false)
 
@@ -19,4 +32,5 @@ class ClassLister {
         // this is how you can load the class type from BeanDefinition instance
         return classes.map { Class.forName(it.beanClassName) }
     }
+
 }

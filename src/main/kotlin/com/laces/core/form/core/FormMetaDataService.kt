@@ -3,10 +3,10 @@ package com.laces.core.form.core
 import com.laces.core.form.core.FormAnnotations.Form
 import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FlowStepResponse
+import com.laces.core.responses.FormAnnotationNotPresent
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 @Service
 @ConfigurationProperties(prefix = "laces.form")
@@ -16,22 +16,10 @@ class FormMetaDataService(
         var packages: MutableList<String> = mutableListOf()
 ) {
 
-    lateinit var settingsMetaData: List<FormMetaData>
-    lateinit var flowMap: Map<String, FlowResponse>
-
-    @PostConstruct
-    fun init() {
-        val settingsClasses = listClassesMatching(Form::class.java)
-        settingsMetaData = settingsClasses.map { createFormMetaData(it) }
-
-        flowMap = flows.map { flow ->
-            val flowResponses = flow.steps
-                    .map { flowStep -> createFlowStepResponse(flowStep, settingsMetaData) }
-
-            flow.flowName to FlowResponse(flow.title, flow.submissionUrl, flowResponses)
-        }.toMap()
-
-        LOGGER.info("Number of forms: " + settingsMetaData.count())
+    fun findAllForms(): List<FormMetaData> {
+        val classLister = ClassLister(listOf(listOf("com.laces"), packages).flatten())
+        val settingsClasses = classLister.allClassesWithAnnotation(Form::class.java)
+        return settingsClasses.map { createFormMetaData(it) }
     }
 
     private fun createFlowStepResponse(flowStep: FlowStep, metaData: List<FormMetaData>): FlowStepResponse {
@@ -45,7 +33,6 @@ class FormMetaDataService(
         return FlowStepResponse(filteredMetaData, flowStep.title, fieldName, flowStep.asArray)
     }
 
-
     private fun isInFlow(formMetaData: FormMetaData, flowStep: FlowStep): Boolean {
         val group = flowStep.group
         val formName = flowStep.formName
@@ -53,20 +40,19 @@ class FormMetaDataService(
         return formMetaData.groups.contains(group) || formMetaData.name == formName
     }
 
-    private fun listClassesMatching(clazz: Class<out Annotation>): List<Class<*>> {
-        packages.add("com.laces")
-        val classLister = ClassLister()
-        return packages.flatMap { classLister.listAllClassesInPackage(it) }
-                .filter { it.isAnnotationPresent(clazz) }
-
-    }
-
     fun getFlow(flowName: String): FlowResponse? {
-        return flowMap[flowName]
+
+        val allFormMetaData = findAllForms()
+        val toMap = flows.map { flow ->
+            val flowResponses = flow.steps
+                    .map { flowStep -> createFlowStepResponse(flowStep, allFormMetaData) }
+            flow.flowName to FlowResponse(flow.title, flow.submissionUrl, flowResponses)
+        }.toMap()
+        return toMap[flowName]
     }
 
     private fun createFormMetaData(clazz: Class<*>): FormMetaData {
-        val formAnnotation = clazz.getAnnotation(Form::class.java)
+        val formAnnotation = clazz.getAnnotation(Form::class.java) ?: throw FormAnnotationNotPresent()
         val title = getSchemaTitle(clazz)
         val name = getSchemaName(clazz)
         val modifiedSchema = jsonSchemaCustomGenerator.constructModifiedSchema(clazz)

@@ -9,33 +9,34 @@ import org.springframework.stereotype.Service
 class SettingsMetaDataDTOService(
         private val formMetaDataService: FormMetaDataService
 ) {
-
-    private val formMetaDataResponses: List<FormMetaDataResponse>
-
-    init {
-        val mapper = ModelMapper()
-        formMetaDataResponses = formMetaDataService.settingsMetaData
-                .map { mapper.map(it, FormMetaDataResponse::class.java) }
-    }
+    val mapper = ModelMapper()
 
     fun getMetaData(): List<FormMetaDataResponse> {
-        return formMetaDataResponses
+        return findAllSettings()
     }
 
     fun getMetaData(group: String): List<FormMetaDataResponse> {
-        return formMetaDataResponses.filter { it.groups.any { itGroup -> itGroup == group } }
+        return findAllSettings().filter { it.groups.any { itGroup -> itGroup == group } }
     }
 
     fun getFlow(flowName: String): FlowResponse {
-        return formMetaDataService.getFlow(flowName) ?: throw ResourceNotFoundException("Unable to find flow: $flowName")
+        return formMetaDataService.getFlow(flowName)
+                ?: throw ResourceNotFoundException("Unable to find flow: $flowName")
     }
 
     fun getMetaDataContainingAll(vararg groups: String): List<FormMetaDataResponse> {
-        return formMetaDataResponses.filter { it.groups.containsAll(groups.toList()) }
+        return findAllSettings().filter { it.groups.containsAll(groups.toList()) }
+    }
+
+    fun findAllSettings(): List<FormMetaDataResponse> {
+        return formMetaDataService.findAllForms()
+                .map { mapper.map(it, FormMetaDataResponse::class.java) }
     }
 
     fun findAllPublicSettings(): List<FormMetaDataResponse> {
-        return formMetaDataResponses.filter { it.public }
+        return formMetaDataService.findAllForms()
+                .filter { it.public }
+                .map { mapper.map(it, FormMetaDataResponse::class.java) }
     }
 
     fun findAllPublicSettings(group: String): List<FormMetaDataResponse> {
