@@ -4,20 +4,17 @@ import com.laces.core.form.core.FormAnnotations.Form
 import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FlowStepResponse
 import com.laces.core.responses.FormAnnotationNotPresent
-import org.slf4j.LoggerFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Service
 
 @Service
-@ConfigurationProperties(prefix = "laces.form")
 class FormMetaDataService(
         private val jsonSchemaCustomGenerator: JsonSchemaCustomGenerator,
         private val flows: List<Flow>,
-        var packages: MutableList<String> = mutableListOf()
+        private val packageLocations : PackageLocations
 ) {
 
     fun findAllForms(): List<FormMetaData> {
-        val classLister = ClassLister(listOf(listOf("com.laces"), packages).flatten())
+        val classLister = ClassLister(packageLocations.packages)
         val settingsClasses = classLister.allClassesWithAnnotation(Form::class.java)
         return settingsClasses.map { createFormMetaData(it) }
     }
@@ -70,9 +67,5 @@ class FormMetaDataService(
 
     private fun isInFlow(groups: List<String>, flow: Flow, formName: String) =
             groups.any { flow.steps.any { step -> step.group == it } } || flow.steps.any { it.formName == formName }
-
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(FormMetaDataService::class.java)
-    }
 
 }

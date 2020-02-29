@@ -4,15 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator
+import com.kjetland.jackson.jsonSchema.SubclassesResolverImpl
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
 import scala.Tuple2
 import scala.collection.immutable.Map
 import java.util.function.Supplier
 
-@Component
-class SchemaConfig {
+@Configuration
+class SchemaConfig(
+        private val packageLocations : PackageLocations
+) {
 
     @Autowired(required = false)
     var suppliers: List<JsonInjectionSupplier>? = null
@@ -20,6 +24,7 @@ class SchemaConfig {
     @Bean
     fun createJsonSchemaGenerator(): JsonSchemaGenerator {
         val objectMapper = ObjectMapper()
+        val  resolver = SubclassesResolverImpl().withPackagesToScan(packageLocations.packages)
         val config = JsonSchemaConfig.vanillaJsonSchemaDraft4().run {
             val baseJsonSuppliers: Map<String, Supplier<JsonNode>> = jsonSuppliers()
 
@@ -47,9 +52,19 @@ class SchemaConfig {
                     subclassesResolver(),
                     failOnUnknownProperties()
             )
-        }
-        val jsonSchemaGenerator = JsonSchemaGenerator(objectMapper, config)
-        return jsonSchemaGenerator
+        }.withSubclassesResolver(resolver)
+        return JsonSchemaGenerator(objectMapper, config)
     }
 
 }
+
+@Configuration
+@ConfigurationProperties("laces.form")
+class Prepare {
+    var packages: MutableList<String> = mutableListOf()
+
+    @Bean
+    fun schemaPackageLocations() = PackageLocations(listOf(packages, listOf("com.laces")).flatten())
+}
+
+data class PackageLocations(val packages: List<String>)
