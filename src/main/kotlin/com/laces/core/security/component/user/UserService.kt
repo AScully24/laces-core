@@ -8,7 +8,6 @@ import com.laces.core.security.component.user.subscription.SubscriptionState.ACT
 import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.session.SessionRegistry
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
@@ -49,7 +48,11 @@ class UserService(
     }
 
     fun isUserLoggedIn(): Boolean {
-        getCurrentUser()
+        try {
+            getCurrentUser()
+        } catch (e: CurrentUserNotFoundException) {
+            return false
+        }
         return true
     }
 

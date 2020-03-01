@@ -13,5 +13,6 @@ public class FormAnnotations {
 		String[] groups() default {};
 		boolean isPublic() default false;
 		String name() default "";
+		boolean isDynamic() default false;
 	}
 }

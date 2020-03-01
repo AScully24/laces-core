@@ -42,5 +42,5 @@ class UserSubscriptionNotCancelled(exception: String) : RuntimeException(excepti
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class UserSubscriptionCancelPending(exception: String) : RuntimeException(exception)
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-class InvalidAdditionalInfoKey(key: String) : RuntimeException("Unable to find validator for key: $key")
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+class FormAnnotationNotPresent() : RuntimeException("Form annotation not present. Please report this to the the service provider.")

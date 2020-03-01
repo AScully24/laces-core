@@ -3,35 +3,32 @@ package com.laces.core.form.core
 import com.laces.core.form.core.FormAnnotations.Form
 import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FlowStepResponse
-import org.slf4j.LoggerFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
+import com.laces.core.responses.FormAnnotationNotPresent
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
 
 @Service
-@ConfigurationProperties(prefix = "laces.form")
 class FormMetaDataService(
         private val jsonSchemaCustomGenerator: JsonSchemaCustomGenerator,
         private val flows: List<Flow>,
-        var packages: MutableList<String> = mutableListOf()
+        private val packageLocations : PackageLocations
 ) {
 
-    lateinit var settingsMetaData: List<FormMetaData>
-    lateinit var flowMap: Map<String, FlowResponse>
+    lateinit var staticMetaData: List<FormMetaData>
 
     @PostConstruct
-    fun init() {
-        val settingsClasses = listClassesMatching(Form::class.java)
-        settingsMetaData = settingsClasses.map { createFormMetaData(it) }
+    fun init(){
+        staticMetaData = findForms { !it.isDynamic }
+    }
 
-        flowMap = flows.map { flow ->
-            val flowResponses = flow.steps
-                    .map { flowStep -> createFlowStepResponse(flowStep, settingsMetaData) }
+    fun findAllForms(): List<FormMetaData> {
+        return listOf(findForms { it.isDynamic }, staticMetaData).flatten()
+    }
 
-            flow.flowName to FlowResponse(flow.title, flow.submissionUrl, flowResponses)
-        }.toMap()
-
-        LOGGER.info("Number of forms: " + settingsMetaData.count())
+    private fun findForms(filter: (Form) -> Boolean): List<FormMetaData> {
+        val classLister = ClassLister(packageLocations.packages)
+        val settingsClasses = classLister.allClassesWithAnnotation(Form::class.java, filter)
+        return settingsClasses.map { createFormMetaData(it) }
     }
 
     private fun createFlowStepResponse(flowStep: FlowStep, metaData: List<FormMetaData>): FlowStepResponse {
@@ -45,7 +42,6 @@ class FormMetaDataService(
         return FlowStepResponse(filteredMetaData, flowStep.title, fieldName, flowStep.asArray)
     }
 
-
     private fun isInFlow(formMetaData: FormMetaData, flowStep: FlowStep): Boolean {
         val group = flowStep.group
         val formName = flowStep.formName
@@ -53,20 +49,19 @@ class FormMetaDataService(
         return formMetaData.groups.contains(group) || formMetaData.name == formName
     }
 
-    private fun listClassesMatching(clazz: Class<out Annotation>): List<Class<*>> {
-        packages.add("com.laces")
-        val classLister = ClassLister()
-        return packages.flatMap { classLister.listAllClassesInPackage(it) }
-                .filter { it.isAnnotationPresent(clazz) }
-
-    }
-
     fun getFlow(flowName: String): FlowResponse? {
-        return flowMap[flowName]
+
+        val allFormMetaData = findAllForms()
+        val toMap = flows.map { flow ->
+            val flowResponses = flow.steps
+                    .map { flowStep -> createFlowStepResponse(flowStep, allFormMetaData) }
+            flow.flowName to FlowResponse(flow.title, flow.submissionUrl, flowResponses)
+        }.toMap()
+        return toMap[flowName]
     }
 
     private fun createFormMetaData(clazz: Class<*>): FormMetaData {
-        val formAnnotation = clazz.getAnnotation(Form::class.java)
+        val formAnnotation = clazz.getAnnotation(Form::class.java) ?: throw FormAnnotationNotPresent()
         val title = getSchemaTitle(clazz)
         val name = getSchemaName(clazz)
         val modifiedSchema = jsonSchemaCustomGenerator.constructModifiedSchema(clazz)
@@ -84,9 +79,5 @@ class FormMetaDataService(
 
     private fun isInFlow(groups: List<String>, flow: Flow, formName: String) =
             groups.any { flow.steps.any { step -> step.group == it } } || flow.steps.any { it.formName == formName }
-
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(FormMetaDataService::class.java)
-    }
 
 }
