@@ -5,6 +5,7 @@ import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FlowStepResponse
 import com.laces.core.responses.FormAnnotationNotPresent
 import org.springframework.stereotype.Service
+import javax.annotation.PostConstruct
 
 @Service
 class FormMetaDataService(
@@ -13,9 +14,20 @@ class FormMetaDataService(
         private val packageLocations : PackageLocations
 ) {
 
+    lateinit var staticMetaData: List<FormMetaData>
+
+    @PostConstruct
+    fun init(){
+        staticMetaData = findForms { !it.isDynamic }
+    }
+
     fun findAllForms(): List<FormMetaData> {
+        return listOf(findForms { it.isDynamic }, staticMetaData).flatten()
+    }
+
+    private fun findForms(filter: (Form) -> Boolean): List<FormMetaData> {
         val classLister = ClassLister(packageLocations.packages)
-        val settingsClasses = classLister.allClassesWithAnnotation(Form::class.java)
+        val settingsClasses = classLister.allClassesWithAnnotation(Form::class.java, filter)
         return settingsClasses.map { createFormMetaData(it) }
     }
 
