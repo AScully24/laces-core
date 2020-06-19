@@ -7,12 +7,13 @@ class ClassLister(
         private val packages: List<String>
 ) {
 
-    fun <T : Annotation>  allClassesWithAnnotation(clazz: Class<T>, filter: (T) -> Boolean = {true}
+    fun <T : Annotation>  allClassesWithAnnotation(
+            clazz: Class<T>,
+            filter: (T) -> Boolean = {true}
     ): List<Class<*>> {
         return packages
                 .flatMap { listAllClassesInPackageWithAnnotation(it, clazz) }
                 .filter { filter(it.getAnnotation(clazz)) }
-
     }
 
     private fun <T: Annotation> listAllClassesInPackageWithAnnotation(packageName: String, annotationClass: Class<T>): List<Class<*>> {

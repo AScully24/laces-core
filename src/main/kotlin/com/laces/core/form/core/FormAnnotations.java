@@ -9,7 +9,7 @@ public class FormAnnotations {
 
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
-	public @interface Form {
+	public @interface FormData {
 		String[] groups() default {};
 		boolean isPublic() default false;
 		String name() default "";
