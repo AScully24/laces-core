@@ -1,7 +1,7 @@
 package com.laces.core.form.core
 
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import com.laces.core.form.core.FormAnnotations.Form
+import com.laces.core.form.core.FormAnnotations.FormData
 import org.apache.commons.lang3.StringUtils.*
 
 fun getClassAsReadableName(clazz: Class<*>): String {
@@ -15,6 +15,6 @@ fun getSchemaTitle(clazz: Class<*>): String {
 }
 
 fun getSchemaName(clazz: Class<*>): String {
-    val schemaTitle = clazz.getAnnotation(Form::class.java)
+    val schemaTitle = clazz.getAnnotation(FormData::class.java)
     return schemaTitle?.name ?: uncapitalize(clazz.simpleName)
 }

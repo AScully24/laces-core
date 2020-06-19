@@ -1,6 +1,6 @@
 package com.laces.core.form.dto
 
-import com.laces.core.form.core.FormMetaData
+import com.laces.core.form.core.Form
 
 data class FlowResponse(
         val title: String,
@@ -9,7 +9,7 @@ data class FlowResponse(
 )
 
 data class FlowStepResponse(
-        val formMetaData: List<FormMetaData>,
+        val formMetaData: List<Form>,
         val title: String,
         val fieldName: String,
         val asArray: Boolean

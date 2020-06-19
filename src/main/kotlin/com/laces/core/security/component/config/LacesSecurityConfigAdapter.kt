@@ -42,7 +42,7 @@ class LacesSecurityConfigAdapter(
             "/auth/**",
             "/register-confirmation/**",
             "/payment/**",
-            "/api/form/public/**",
+            "/api/form/**",
             "/api/contact/**",
             STRIPE_WEBHOOK_URL
     )
