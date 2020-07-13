@@ -17,16 +17,14 @@ data class User(
         val username: String = "",
 
         val password: String = "",
-        val apiKey: String = "",
-
         @Enumerated(EnumType.STRING)
         val subscriptionState: SubscriptionState = SubscriptionState.AWAITING_CONFIRMATION,
+
         val customerStripeId: String = "",
         val subscriptionStripeId: String = "",
         val subscriptionItemId: String = "",
         val planStripeId: String = "",
         val meteredStripeId: String? = null,
-
         @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
         val additionalInfo: AdditionalInfo? = null
 

@@ -6,7 +6,6 @@ import com.laces.core.responses.EmailExistsException
 import com.laces.core.responses.EmptyPasswordException
 import com.laces.core.responses.PasswordMismatchException
 import com.laces.core.responses.UserRegistrationTokenException
-import com.laces.core.security.component.passkey.KeyGeneratorService
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
@@ -21,13 +20,14 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.*
+import javax.crypto.KeyGenerator
 import javax.transaction.Transactional
+import javax.xml.bind.DatatypeConverter
 
 @Service
 class RegisterService(
         private val registerTokenRepository: RegisterTokenRepository,
         private val userService: UserService,
-        private val keyGeneratorService: KeyGeneratorService,
         private val emailService: EmailService,
         private val paymentService: PaymentService,
 
@@ -57,7 +57,7 @@ class RegisterService(
 
         val user = userService.saveNewUser(newUser, false)
 
-        val passKey = keyGeneratorService.generateNewPassKey()
+        val passKey = generateRandomKey()
         registerTokenRepository.save(RegisterToken(passKey, user))
         try {
             emailService.sendSimpleMessageFromRegistration(newUser.username, "Registration Confirmation",
@@ -70,7 +70,14 @@ class RegisterService(
         newUserAdapters?.forEach { catchAdapterException { it.action(user) } }
 
         return user
+    }
 
+    private fun generateRandomKey(): String {
+        val keyGen = KeyGenerator.getInstance("AES")
+                .also { it.init(128) }
+        val secretKey = keyGen.generateKey()
+        val encoded = secretKey.encoded
+        return DatatypeConverter.printHexBinary(encoded).toLowerCase()
     }
 
     fun registerUserWithSubscription(userSubscription: NewSubscription) {
@@ -83,7 +90,8 @@ class RegisterService(
         )
 
         newUserAdapters?.forEach {
-            catchAdapterException { it.action(user, userSubscription, stripeSubscription) }
+            catchAdapterException { it.
+            action(user, userSubscription, stripeSubscription) }
         }
     }
 
