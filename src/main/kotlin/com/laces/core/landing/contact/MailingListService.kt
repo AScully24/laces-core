@@ -1,5 +1,5 @@
 package com.laces.core.landing.contact
 
 interface MailingListService {
-    fun signUpToMailingList(email: String)
+    fun sendMail(email: String, extraInfo: Map<String, Any?>)
 }

@@ -4,5 +4,12 @@ import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
 import com.laces.core.form.core.FormAnnotations.FormData
 
 @JsonSchemaTitle("")
-@FormData(name = "Mailing List", isPublic = true, groups = [CONTACT])
-class MailingListRequest(@field:JsonSchemaTitle("Email") val email: String)
+@FormData(name = "Email Submission Form", isPublic = true, groups = [CONTACT])
+class EmailSubmissionForm(
+        @field:JsonSchemaTitle("Email") val email: String
+)
+
+class MailingListRequestDto(
+        val formData: EmailSubmissionForm,
+        val extraInfo: Map<String, Any?> = emptyMap()
+)

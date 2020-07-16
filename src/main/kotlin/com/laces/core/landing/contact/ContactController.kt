@@ -19,9 +19,9 @@ internal class ContactController(
         contactService.sendUserEnquiry(firstName, secondName, userEmail, userSubject, message)
     }
 
-    @PostMapping("/mailing-list")
-    fun signUpToMailingList(@RequestBody mailingListRequest: MailingListRequest) {
-        isValidEmail(mailingListRequest.email)
-        mailingList?.signUpToMailingList(mailingListRequest.email)
+    @PostMapping("/email")
+    fun signUpToMailingList(@RequestBody mailingListRequest: MailingListRequestDto) {
+        isValidEmail(mailingListRequest.formData.email)
+        mailingList?.sendMail(mailingListRequest.formData.email, mailingListRequest.extraInfo)
     }
 }
