@@ -9,17 +9,17 @@ import org.springframework.stereotype.Service
 class ContactService(
         private val emailService: EmailService,
 
-        @Value("\${laces.security.registration.from-email}")
-        private val infoEmail: String
+        @Value("\${laces.contact.email-address.info}")
+        private val infoEmailAddress: String
 ) {
 
-    fun sendUserEnquiry(firstName: String, secondName: String, userEmail: String, userSubject: InfoEnquirySubject, message: String) {
+    fun sendUserEnquiry(name: String, email: String, subject: InfoEnquirySubject, message: String) {
 
-        isValidEmail(userEmail)
+        isValidEmail(email)
 
-        val subject = "ENQUIRY - $userSubject - $firstName $secondName"
-        val newMessage = "$userEmail\n\n$message"
-        emailService.sendSimpleMessage(infoEmail, infoEmail, subject, newMessage)
+        val emailSubject = "ENQUIRY - $subject - $name"
+        val newMessage = "$email\n\n$message"
+        emailService.sendSimpleMessage(infoEmailAddress, infoEmailAddress, emailSubject, newMessage)
     }
 
 }

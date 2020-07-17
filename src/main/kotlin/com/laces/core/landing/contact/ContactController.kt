@@ -14,9 +14,10 @@ internal class ContactController(
 ) {
 
     @PostMapping("/info")
-    fun submitGeneralEnquiry(@RequestBody infoEnquiryRequest: InfoEnquiryRequest) {
-        val (firstName, secondName, userEmail, userSubject, message) = infoEnquiryRequest
-        contactService.sendUserEnquiry(firstName, secondName, userEmail, userSubject, message)
+    fun submitGeneralEnquiry(@RequestBody infoEnquiryRequestForm: InfoEnquiryRequestDto) {
+        val (name, email, message) = infoEnquiryRequestForm.formData
+        val subject = infoEnquiryRequestForm.subject
+        contactService.sendUserEnquiry(name ?: "Anonymous", email, subject, message)
     }
 
     @PostMapping("/email")
