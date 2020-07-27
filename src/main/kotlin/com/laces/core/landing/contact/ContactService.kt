@@ -13,11 +13,11 @@ class ContactService(
         private val infoEmailAddress: String
 ) {
 
-    fun sendUserEnquiry(name: String, email: String, subject: InfoEnquirySubject, message: String) {
+    fun sendUserEnquiry(email: String, subject: InfoEnquirySubject, message: String) {
 
         isValidEmail(email)
 
-        val emailSubject = "ENQUIRY - $subject - $name"
+        val emailSubject = "ENQUIRY - $subject"
         val newMessage = "$email\n\n$message"
         emailService.sendSimpleMessage(infoEmailAddress, infoEmailAddress, emailSubject, newMessage)
     }

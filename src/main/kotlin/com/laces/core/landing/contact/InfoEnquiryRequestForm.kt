@@ -17,9 +17,6 @@ data class InfoEnquiryRequestDto(
 @FormData(groups = [CONTACT], isPublic = true, name = "General Enquiry")
 @JsonSchemaTitle("")
 data class InfoEnquiryRequestForm(
-        @field:JsonProperty(value = "Name", required = false)
-        val name: String?,
-
         @field:JsonProperty(value = "Email", required = true)
         val email: String,
 
