@@ -11,3 +11,8 @@ fun generateNodeArray(nodeName: String, values: List<String>): JsonNode {
 
     return schema
 }
+
+fun generateNode(nodeName: String, values: List<JsonNode>): JsonNode {
+    return ObjectMapper().createObjectNode()
+            .apply { values.forEach { set(nodeName, it) } }
+}
