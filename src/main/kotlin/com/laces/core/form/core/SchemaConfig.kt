@@ -24,7 +24,7 @@ class SchemaConfig(
     @Bean
     fun createJsonSchemaGenerator(): JsonSchemaGenerator {
         val objectMapper = ObjectMapper()
-        val  resolver = SubclassesResolverImpl().withPackagesToScan(packageLocations.packages)
+        val resolver = SubclassesResolverImpl().withPackagesToScan(packageLocations.packages)
         val config = JsonSchemaConfig.vanillaJsonSchemaDraft4().run {
             val baseJsonSuppliers: Map<String, Supplier<JsonNode>> = jsonSuppliers()
 
@@ -49,10 +49,10 @@ class SchemaConfig(
                     uniqueItemClasses(),
                     classTypeReMapping(),
                     finalJsonSuppliers,
-                    subclassesResolver(),
+                    resolver,
                     failOnUnknownProperties()
             )
-        }.withSubclassesResolver(resolver)
+        }
         return JsonSchemaGenerator(objectMapper, config)
     }
 
