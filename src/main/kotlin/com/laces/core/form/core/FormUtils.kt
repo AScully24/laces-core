@@ -9,7 +9,7 @@ fun generateStringArrayNode(nodeName: String, values: List<String>): JsonNode {
     val schema = ObjectMapper().createObjectNode()
     val arrayNode = ObjectMapper().createArrayNode()
     values.forEach { arrayNode.add(it) }
-    schema.set(nodeName, arrayNode)
+    schema.set<ArrayNode>(nodeName, arrayNode)
 
     return schema
 }
@@ -31,14 +31,14 @@ fun generateNodeWithValues(nodeName: String, values: Map<String, JsonNode>): Jso
     val child = json(values)
     return ObjectMapper()
             .createObjectNode()
-            .also { it.set(nodeName, child) }
+            .also { it.set<JsonNode>(nodeName, child) }
 
 }
 
 fun json(values: Map<String, JsonNode>): JsonNode {
     return ObjectMapper()
             .createObjectNode()
-            .also { it.setAll(values) }
+            .also { it.setAll<JsonNode>(values) }
 }
 
 operator fun MutableMap<String, JsonNode>.set(key: String, value: String) {
@@ -55,18 +55,18 @@ fun json(init: MutableMap<String, JsonNode>.() -> Unit): JsonNode {
     values.init()
     return ObjectMapper()
             .createObjectNode()
-            .also { it.setAll(values) }
+            .also { it.setAll<JsonNode>(values) }
 
 }
 
 fun json(nodeName: String, value: JsonNode): JsonNode {
     return ObjectMapper().createObjectNode()
-            .apply { set(nodeName, value) }
+            .apply { set<JsonNode>(nodeName, value) }
 }
 
 fun generateTextNode(nodeName: String, value: String): JsonNode {
     return ObjectMapper().createObjectNode()
-            .apply { set(nodeName, TextNode(value)) }
+            .apply { set<TextNode>(nodeName, TextNode(value)) }
 }
 
 fun node(init: JsonNode.() -> Unit): JsonNode {
