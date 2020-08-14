@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.core.session.SessionRegistryImpl
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.util.matcher.RequestMatcher
@@ -71,7 +70,6 @@ class LacesSecurityConfigAdapter(
             .and()
                 .logout().permitAll()
                 .clearAuthentication(true)
-                .addLogoutHandler(CookieClearingLogoutHandler())
                 .logoutSuccessHandler((HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)))
             .and()
                 .exceptionHandling()
