@@ -2,6 +2,7 @@ package com.laces.core.form.core
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator
 import com.kjetland.jackson.jsonSchema.SubclassesResolverImpl
@@ -23,7 +24,7 @@ class SchemaConfig(
 
     @Bean
     fun createJsonSchemaGenerator(): JsonSchemaGenerator {
-        val objectMapper = ObjectMapper()
+        val objectMapper = ObjectMapper().registerModule(KotlinModule())
         val resolver = SubclassesResolverImpl().withPackagesToScan(packageLocations.packages)
         val config = JsonSchemaConfig.vanillaJsonSchemaDraft4().run {
             val baseJsonSuppliers: Map<String, Supplier<JsonNode>> = jsonSuppliers()
@@ -37,8 +38,8 @@ class SchemaConfig(
             JsonSchemaConfig(
                     autoGenerateTitleForProperties(),
                     defaultArrayFormat(),
-                    useOneOfForOption(),
-                    useOneOfForNullables(),
+                    true,
+                    false,
                     usePropertyOrdering(),
                     hidePolymorphismTypeProperty(),
                     disableWarnings(),
