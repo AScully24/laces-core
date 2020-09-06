@@ -12,5 +12,6 @@ data class FlowStep(
         val group: String?,
         val title: String,
         val asArray: Boolean = false,
-        val required: Boolean = true
+        val required: Boolean = true,
+        val fieldName: String = formName ?: group ?: "NOT_SET"
 )

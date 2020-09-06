@@ -18,7 +18,7 @@ class FormRepository(
                 ?.let { flow ->
                     val flowStepResponses = flow.steps
                             .map { flowStep -> createFlowStepResponse(flowStep, findForms { formStepFilter(it, flowStep) }) }
-                    FlowResponse(flow.title,flow.submissionUrl, flowStepResponses)
+                    FlowResponse(flow.title, flow.submissionUrl, flowStepResponses)
                 }
     }
 
@@ -51,12 +51,7 @@ class FormRepository(
     private fun createFlowStepResponse(flowStep: FlowStep, metaData: List<Form>): FlowStepResponse {
         val filteredMetaData = metaData
                 .filter { formMetaData -> isInFlow(formMetaData, flowStep) }
-
-        val fieldName = if (filteredMetaData.size == 1 && filteredMetaData[0].name.isNotBlank()) {
-            filteredMetaData[0].name
-        } else flowStep.group ?: "NOT_SET"
-
-        return FlowStepResponse(filteredMetaData, flowStep.title, fieldName, flowStep.asArray)
+        return FlowStepResponse(filteredMetaData, flowStep.title, flowStep.fieldName, flowStep.asArray)
     }
 
     private fun isInFlow(form: Form, flowStep: FlowStep): Boolean {
