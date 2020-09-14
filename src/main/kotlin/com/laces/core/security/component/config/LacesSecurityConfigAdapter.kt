@@ -18,6 +18,10 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+
 
 @Order(0)
 @Configuration
@@ -34,7 +38,7 @@ class LacesSecurityConfigAdapter(
         const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
     }
 
-    val defaultUrls = listOf(
+    final val defaultUrls = listOf(
             "/*.js",
             "/*.jpg",
             "/*.css",
@@ -48,12 +52,15 @@ class LacesSecurityConfigAdapter(
 
     var allowedUrls = mutableListOf<String>()
     var authenticatedUrls = mutableListOf<String>()
-    override fun configure(http: HttpSecurity) {
 
+    init {
         if (includeDefaultAllowed) {
             allowedUrls.addAll(defaultUrls)
             LOG.info("Including default URLs.")
         }
+    }
+
+    override fun configure(http: HttpSecurity) {
 
         LOG.info("Allowed URLS: $allowedUrls")
         LOG.info("Authenticated URLS: $authenticatedUrls")
@@ -76,13 +83,28 @@ class LacesSecurityConfigAdapter(
                 .authenticationEntryPoint(Http403ForbiddenEntryPoint())
             .and()
                 .csrf()
-                .ignoringAntMatchers(STRIPE_WEBHOOK_URL)
+                .ignoringAntMatchers(*listOf(listOf(STRIPE_WEBHOOK_URL), allowedUrls).flatten().toTypedArray())
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
             .and()
                 .requiresChannel()
                 .requestMatchers(RequestMatcher{it.getHeader("X-Forwarded-Proto") != null})
                 .requiresSecure()
+            .and()
+                .cors()
     }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource? {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf("*")
+        configuration.allowedMethods = listOf("*")
+        configuration.allowedHeaders = listOf("*")
+        configuration.allowCredentials = true
+        val source = UrlBasedCorsConfigurationSource()
+        allowedUrls.forEach { source.registerCorsConfiguration(it, configuration) }
+        return source
+    }
+
 
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.authenticationProvider(authenticationProvider)
