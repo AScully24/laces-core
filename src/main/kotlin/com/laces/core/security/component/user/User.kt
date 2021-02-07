@@ -2,11 +2,13 @@ package com.laces.core.security.component.user
 
 import com.laces.core.jpa.HasId
 import com.laces.core.security.component.user.subscription.SubscriptionState
+import kotlinx.serialization.Serializable
 import javax.persistence.*
 import javax.persistence.GenerationType.IDENTITY
 
 @Entity
 @Table(name = "users")
+@Serializable
 data class User(
 
         @Id
@@ -28,4 +30,8 @@ data class User(
         @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
         val additionalInfo: AdditionalInfo? = null
 
-) : HasId
+) : HasId, java.io.Serializable {
+        companion object {
+                private const val serialVersionUID: Long = 1
+        }
+}
