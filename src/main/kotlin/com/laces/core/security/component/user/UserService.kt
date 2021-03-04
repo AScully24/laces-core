@@ -67,6 +67,10 @@ class UserService(
         return userRepository.existsByUsername(userName)
     }
 
+    fun findByUsername(userName: String): User? {
+        return userRepository.findByUsername(userName)
+    }
+
     fun getUserBySubscription(subscriptionId: String): User? {
         return userRepository.findBySubscriptionStripeId(subscriptionId)
     }
