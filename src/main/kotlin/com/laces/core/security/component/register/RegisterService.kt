@@ -2,10 +2,7 @@ package com.laces.core.security.component.register
 
 import com.laces.core.email.EmailService
 import com.laces.core.email.isValidEmail
-import com.laces.core.responses.EmailExistsException
-import com.laces.core.responses.EmptyPasswordException
-import com.laces.core.responses.PasswordMismatchException
-import com.laces.core.responses.UserRegistrationTokenException
+import com.laces.core.responses.*
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
 import com.laces.core.security.component.user.NewUser
@@ -26,13 +23,13 @@ import javax.xml.bind.DatatypeConverter
 
 @Service
 class RegisterService(
-        private val registerTokenRepository: RegisterTokenRepository,
-        private val userService: UserService,
-        private val emailService: EmailService,
-        private val paymentService: PaymentService,
+    private val registerTokenRepository: RegisterTokenRepository,
+    private val userService: UserService,
+    private val emailService: EmailService,
+    private val paymentService: PaymentService,
 
-        @Value("\${app.url}")
-        val appUrl: String
+    @Value("\${app.url}")
+    val appUrl: String
 ) {
 
     @Autowired(required = false)
@@ -45,7 +42,7 @@ class RegisterService(
     var userConfirmedAdapters: List<UserConfirmedAdapter>? = null
 
     @Autowired
-    var additionalInfoValidator : AdditionalInfoValidator? = null
+    var additionalInfoValidator: AdditionalInfoValidator? = null
 
     companion object {
         private val LOG = LoggerFactory.getLogger(RegisterService::class.java)
@@ -57,24 +54,37 @@ class RegisterService(
 
         val user = userService.saveNewUser(newUser, false)
 
-        val passKey = generateRandomKey()
-        registerTokenRepository.save(RegisterToken(passKey, user))
-        try {
-            emailService.sendSimpleMessageFromRegistration(newUser.username, "Registration Confirmation",
-                    "Please follow the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey")
-
-        } catch (e: Exception) {
-            LOG.error("Unable to send email: ", e)
-        }
+        createNewRegisterToken(user)
 
         newUserAdapters?.forEach { catchAdapterException { it.action(user) } }
 
         return user
     }
 
+    @Transactional
+    fun refreshRegisterToken(userName: String) {
+        val user = userService.findByUsername(userName) ?: throw ResourceNotFoundException("Unable to find username: $userName")
+        registerTokenRepository.deleteByUser(user)
+        createNewRegisterToken(user)
+    }
+
+    private fun createNewRegisterToken(user: User) {
+        val passKey = generateRandomKey()
+        registerTokenRepository.save(RegisterToken(passKey, user))
+        try {
+            emailService.sendSimpleMessageFromRegistration(
+                user.username, "Registration Confirmation",
+                "Please follow the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey"
+            )
+
+        } catch (e: Exception) {
+            LOG.error("Unable to send email: ", e)
+        }
+    }
+
     private fun generateRandomKey(): String {
         val keyGen = KeyGenerator.getInstance("AES")
-                .also { it.init(128) }
+            .also { it.init(128) }
         val secretKey = keyGen.generateKey()
         val encoded = secretKey.encoded
         return DatatypeConverter.printHexBinary(encoded).toLowerCase()
@@ -83,15 +93,17 @@ class RegisterService(
     fun registerUserWithSubscription(userSubscription: NewSubscription) {
         val user = registerNewUser(userSubscription.newUser)
 
-        val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(user,
-                userSubscription.token,
-                userSubscription.productStripeId,
-                SubscriptionState.AWAITING_CONFIRMATION
+        val stripeSubscription = paymentService.createCustomerAndSignUpToSubscription(
+            user,
+            userSubscription.token,
+            userSubscription.productStripeId,
+            SubscriptionState.AWAITING_CONFIRMATION
         )
 
         newUserAdapters?.forEach {
-            catchAdapterException { it.
-            action(user, userSubscription, stripeSubscription) }
+            catchAdapterException {
+                it.action(user, userSubscription, stripeSubscription)
+            }
         }
     }
 
@@ -134,8 +146,8 @@ class RegisterService(
         val today = Date()
         val oldTokens = registerTokenRepository.findAllByExpiryDateLessThan(today)
         val oldUsers = oldTokens
-                .map { it.user }
-                .filter { it.subscriptionState == SubscriptionState.AWAITING_CONFIRMATION }
+            .map { it.user }
+            .filter { it.subscriptionState == SubscriptionState.AWAITING_CONFIRMATION }
 
         registerTokenRepository.deleteAll(oldTokens)
 
