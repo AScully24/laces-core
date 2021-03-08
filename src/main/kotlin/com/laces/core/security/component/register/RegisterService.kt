@@ -90,6 +90,7 @@ class RegisterService(
         return DatatypeConverter.printHexBinary(encoded).toLowerCase()
     }
 
+    @Transactional
     fun registerUserWithSubscription(userSubscription: NewSubscription) {
         val user = registerNewUser(userSubscription.newUser)
 

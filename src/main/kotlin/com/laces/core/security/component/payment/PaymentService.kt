@@ -1,6 +1,7 @@
 package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
+import com.laces.core.responses.UserDoesNotHavePaymentMethod
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.user.User
@@ -129,7 +130,7 @@ class PaymentService(
     }
 
     @Transactional
-    fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
+    fun createCustomerAndSignUpToSubscription(user: User, token: String?, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
         val (customer, updatedUser) = createCustomer(user, token)
         return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, updatedUser, subscriptionState)
     }
@@ -175,14 +176,14 @@ class PaymentService(
     }
 
     @Transactional
-    private fun createCustomer(user: User, token: String): Pair<Customer, User> {
+    private fun createCustomer(user: User, token: String?): Pair<Customer, User> {
 
         if (!StringUtils.isBlank(user.customerStripeId)) {
             throw UserCustomerStripeIdException("User is already registered with a payment.")
         }
 
         val chargeParams = HashMap<String, Any>()
-        chargeParams["source"] = token
+        token?.let { chargeParams["source"] = it }
         chargeParams["email"] = user.username
 
         val customer = Customer.create(chargeParams)
@@ -196,6 +197,11 @@ class PaymentService(
     private fun signUpCustomerToSubscription(customer: Customer, productStripeId: String, meteredStripeId: String?): Subscription {
 
         val subscription = HashMap<String, Any>()
+
+        val subscriptionPlan = planService.findSubscriptionPlan(productStripeId)
+        if(subscriptionPlan?.free == false && customer.defaultSource == null){
+            throw UserDoesNotHavePaymentMethod()
+        }
 
         val mainPlan = HashMap<String, Any>()
         mainPlan["plan"] = productStripeId
