@@ -5,6 +5,7 @@ import com.stripe.Stripe
 import com.stripe.model.Invoice
 import com.stripe.model.UsageRecord
 import com.stripe.net.RequestOptions
+import com.stripe.param.UsageRecordCreateOnSubscriptionItemParams
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -14,24 +15,24 @@ import java.util.*
 
 @Service
 class MeteredUsageServiceImpl(
-        @Value("\${app.stripe.secret}")
-        secret: String,
-        val userService: UserService
+    @Value("\${app.stripe.secret}")
+    secret: String,
+    val userService: UserService
 ) : MeteredUsageService {
 
     init {
         Stripe.apiKey = secret
     }
 
-    override fun incrementUsage(subscriptionItemId: String, quantity: Int) {
+    override fun incrementUsage(subscriptionItemId: String, quantity: Long) {
 
-        val usageRecordParams = HashMap<String, Any>()
-        usageRecordParams["quantity"] = quantity
-        usageRecordParams["timestamp"] = Instant.now().atOffset(ZoneOffset.UTC).toInstant().epochSecond
-        usageRecordParams["subscription_item"] = subscriptionItemId
-        usageRecordParams["action"] = "increment"
+        val params = UsageRecordCreateOnSubscriptionItemParams.builder()
+            .setQuantity(quantity)
+            .setTimestamp(Instant.now().atOffset(ZoneOffset.UTC).toInstant().epochSecond)
+            .setAction(UsageRecordCreateOnSubscriptionItemParams.Action.INCREMENT)
+            .build()
 
-        UsageRecord.create(usageRecordParams, RequestOptions.getDefault())
+        UsageRecord.createOnSubscriptionItem(subscriptionItemId, params, RequestOptions.getDefault())
     }
 
     override fun retrieveCurrentUsage() {
