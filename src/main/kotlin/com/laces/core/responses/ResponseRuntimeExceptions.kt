@@ -42,5 +42,8 @@ class UserSubscriptionNotCancelled(exception: String) : RuntimeException(excepti
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class UserSubscriptionCancelPending(exception: String) : RuntimeException(exception)
 
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserDoesNotHavePaymentMethod : RuntimeException("You have not set a payment method yet. You must set one up before changing plans.")
+
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-class FormAnnotationNotPresent() : RuntimeException("Form annotation not present. Please report this to the the service provider.")
+class FormAnnotationNotPresent : RuntimeException("Form annotation not present. Please report this to the the service provider.")

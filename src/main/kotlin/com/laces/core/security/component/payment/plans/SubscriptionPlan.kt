@@ -7,4 +7,6 @@ class SubscriptionPlan {
     var meteredStripeId: String? = null
     var price = ""
     var features: List<String> = mutableListOf()
+    var free: Boolean = false
+    var meta: Map<String, String> = mutableMapOf()
 }

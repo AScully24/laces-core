@@ -1,6 +1,7 @@
 package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
+import com.laces.core.responses.UserDoesNotHavePaymentMethod
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.user.User
@@ -11,6 +12,9 @@ import com.laces.core.security.component.user.subscription.SubscriptionState.CAN
 import com.stripe.Stripe
 import com.stripe.model.Customer
 import com.stripe.model.Subscription
+import com.stripe.param.SubscriptionCreateParams
+import com.stripe.param.SubscriptionUpdateParams
+import com.stripe.param.SubscriptionUpdateParams.ProrationBehavior.CREATE_PRORATIONS
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -45,9 +49,12 @@ class PaymentService(
         }
 
         val subscription = Subscription.retrieve(user.subscriptionStripeId)
-        val params = HashMap<String, Any>()
-        params["at_period_end"] = true
-        subscription.cancel(params)
+
+        val params = SubscriptionUpdateParams.builder()
+            .setCancelAtPeriodEnd(true)
+            .build()
+
+        subscription.update(params)
 
         val updatedUser = user.copy(subscriptionState = CANCEL_PENDING)
         userService.save(updatedUser)
@@ -106,30 +113,34 @@ class PaymentService(
     }
 
     private fun reactivateCancelPending(subscription: Subscription) {
-        val newSubscriptionItems = HashMap<String, Any>()
-        val previousSubscriptionItems = subscription.subscriptionItems.data
 
-        val mainPlan = HashMap<String, Any>()
-        mainPlan["id"] = previousSubscriptionItems[0].id
-        mainPlan["plan"] = previousSubscriptionItems[0].plan.id
-        newSubscriptionItems["0"] = mainPlan
+        val previousSubscriptionItems = subscription.items.data
+
+        val params = SubscriptionUpdateParams.builder()
+            .setCancelAtPeriodEnd(false)
+            .setProrationBehavior(CREATE_PRORATIONS)
+            .addItem(
+                SubscriptionUpdateParams.Item.builder()
+                    .setId(previousSubscriptionItems[0].id)
+                    .setPrice(previousSubscriptionItems[0].plan.id)
+                    .build()
+            )
+
 
         if (previousSubscriptionItems[1] != null) {
-            val meteredPlan = HashMap<String, Any>()
-            meteredPlan["id"] = previousSubscriptionItems[1].id
-            meteredPlan["plan"] = previousSubscriptionItems[1].plan.id
-            newSubscriptionItems["1"] = meteredPlan
+            params.addItem(
+                SubscriptionUpdateParams.Item.builder()
+                    .setId(previousSubscriptionItems[1].id)
+                    .setPrice(previousSubscriptionItems[1].plan.id)
+                    .build()
+            )
         }
 
-        val params = HashMap<String, Any>()
-        params["cancel_at_period_end"] = false
-        params["items"] = newSubscriptionItems
-
-        subscription.update(params)
+        subscription.update(params.build())
     }
 
     @Transactional
-    fun createCustomerAndSignUpToSubscription(user: User, token: String, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
+    fun createCustomerAndSignUpToSubscription(user: User, token: String?, planStripeId: String, subscriptionState: SubscriptionState = ACTIVE): Subscription {
         val (customer, updatedUser) = createCustomer(user, token)
         return signUpCustomerToSubscriptionAndUpdateSubscriptionDetails(planStripeId, customer, updatedUser, subscriptionState)
     }
@@ -150,7 +161,7 @@ class PaymentService(
 
         // There should only be a single plan per subscriber, but this allows multiple plans.
         // Need to ensure more than one of the same plan is on any single subscription.
-        val planId = subscription.subscriptionItems.data.first { it.plan.id == planStripeId }.id
+        val planId = subscription.items.data.first { it.plan.id == planStripeId }.id
 
         val updatedUser = user.copy(subscriptionStripeId = subscription.id,
                 subscriptionState = subscriptionState,
@@ -175,14 +186,14 @@ class PaymentService(
     }
 
     @Transactional
-    private fun createCustomer(user: User, token: String): Pair<Customer, User> {
+    private fun createCustomer(user: User, token: String?): Pair<Customer, User> {
 
         if (!StringUtils.isBlank(user.customerStripeId)) {
             throw UserCustomerStripeIdException("User is already registered with a payment.")
         }
 
         val chargeParams = HashMap<String, Any>()
-        chargeParams["source"] = token
+        token?.let { chargeParams["source"] = it }
         chargeParams["email"] = user.username
 
         val customer = Customer.create(chargeParams)
@@ -195,24 +206,29 @@ class PaymentService(
 
     private fun signUpCustomerToSubscription(customer: Customer, productStripeId: String, meteredStripeId: String?): Subscription {
 
-        val subscription = HashMap<String, Any>()
-
-        val mainPlan = HashMap<String, Any>()
-        mainPlan["plan"] = productStripeId
-        subscription["0"] = mainPlan
-
-        if (meteredStripeId != null) {
-            val meteredPlan = HashMap<String, Any>()
-            meteredPlan["plan"] = meteredStripeId
-            subscription["1"] = meteredPlan
+        val subscriptionPlan = planService.findSubscriptionPlan(productStripeId)
+        if(subscriptionPlan?.free == false && customer.defaultSource == null){
+            throw UserDoesNotHavePaymentMethod()
         }
 
-        val subscriptionRequest = HashMap<String, Any>()
-        subscriptionRequest["customer"] = customer.id
-        subscriptionRequest["items"] = subscription
+        val paramBuilder = SubscriptionCreateParams.builder()
+            .setCustomer(customer.id)
+            .addItem(
+                SubscriptionCreateParams.Item.builder()
+                    .setPrice(productStripeId)
+                    .build()
+            )
+
+        if (meteredStripeId != null) {
+            paramBuilder.addItem(
+                SubscriptionCreateParams.Item.builder()
+                    .setPrice(meteredStripeId)
+                    .build()
+            )
+        }
 
         try {
-            return Subscription.create(subscriptionRequest)
+            return Subscription.create(paramBuilder.build())
         } catch (e: Exception) {
             LOGGER.error("Failed to sign user up to subscription", e)
             throw UserSubscriptionStripeIdException("Failed to sign user up to subscription: $productStripeId")
@@ -220,24 +236,27 @@ class PaymentService(
     }
 
     private fun updateStripeSubscription(subscription: Subscription, newPlanStripeId: String, newMeteredStripeId: String?) {
-        val plans = HashMap<String, Any>()
 
-        val mainPlan = HashMap<String, Any>()
-        mainPlan["id"] = subscription.subscriptionItems.data[0].id
-        mainPlan["plan"] = newPlanStripeId
-        plans["0"] = mainPlan
+        val paramsBuilder = SubscriptionUpdateParams.builder()
+            .setCancelAtPeriodEnd(false)
+            .setProrationBehavior(CREATE_PRORATIONS)
+            .addItem(
+                SubscriptionUpdateParams.Item.builder()
+                    .setId(subscription.items.data[0].id)
+                    .setPrice(newPlanStripeId)
+                    .build()
+            )
 
         if (newMeteredStripeId != null) {
-            val meteredPlan = HashMap<String, Any>()
-            meteredPlan["id"] = subscription.subscriptionItems.data[1].id
-            meteredPlan["plan"] = newMeteredStripeId
-            plans["1"] = meteredPlan
+            paramsBuilder.addItem(
+                SubscriptionUpdateParams.Item.builder()
+                    .setId(subscription.items.data[1].id)
+                    .setPrice(newMeteredStripeId)
+                    .build()
+            )
         }
 
-        val params = HashMap<String, Any>()
-        params["cancel_at_period_end"] = false
-        params["items"] = plans
-        subscription.update(params)
+        subscription.update(paramsBuilder.build())
     }
 
 }

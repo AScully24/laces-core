@@ -5,6 +5,7 @@ import com.laces.core.responses.UserNameExistsException
 import com.laces.core.security.component.user.spring.MyUserPrincipal
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -63,6 +64,10 @@ class UserService(
         return principal.user
     }
 
+    fun getCurrentUserFromDatabase() : User{
+        return getCurrentUser().id?.let(::findById) ?: throw CurrentUserNotFoundException("Unable to find current user")
+    }
+
     fun existsByName(userName: String): Boolean {
         return userRepository.existsByUsername(userName)
     }
@@ -73,6 +78,10 @@ class UserService(
 
     fun getUserBySubscription(subscriptionId: String): User? {
         return userRepository.findBySubscriptionStripeId(subscriptionId)
+    }
+
+    fun findById(id: Long): User? {
+        return userRepository.findByIdOrNull(id)
     }
 
     fun expireUserSessions(user: User) {
