@@ -15,6 +15,7 @@ class UserController(
     fun getUserDetails() : LacesUserDetailsDto {
         val (user, plan) = planService.getCurrentUserPlan()
         return LacesUserDetailsDto(
+            user.username,
             user.subscriptionState,
             plan.planName,
             user.additionalInfo?.toDto()
