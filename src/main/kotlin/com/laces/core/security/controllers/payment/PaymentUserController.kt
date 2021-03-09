@@ -19,7 +19,7 @@ class PaymentUserController(
 ) {
     @GetMapping("plan")
     fun availablePlans(): UserPlan {
-        return userPlanService.getCurrentUserPlan()
+        return userPlanService.getCurrentUserPlan().second
     }
 
     @PostMapping("cancel-subscription")
@@ -33,7 +33,7 @@ class PaymentUserController(
 
     @PostMapping("change-subscription")
     fun changeSubscription(@RequestParam newPlanStripeId: String): Map<String, String> {
-        val user = userService.getCurrentUser()
+        val user = userService.getCurrentUserFromDatabase()
 
         paymentService.changeUserSubscription(user, newPlanStripeId)
 
