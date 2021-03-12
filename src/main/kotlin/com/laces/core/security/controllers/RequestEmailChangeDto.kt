@@ -10,6 +10,9 @@ data class RequestEmailChangeDto(
     @JsonProperty(value = "New Email")
     val newEmail: String,
 
+    @JsonProperty(value = "Confirm New Email")
+    val confirmNewEmail: String,
+
     @field:JsonProperty(value = "Password")
     val password: String,
 )

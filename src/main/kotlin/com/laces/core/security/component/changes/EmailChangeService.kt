@@ -1,6 +1,8 @@
 package com.laces.core.security.component.changes
 
 import com.laces.core.email.EmailService
+import com.laces.core.responses.InvalidEmailException
+import com.laces.core.responses.InvalidPasswordException
 import com.laces.core.responses.ResourceNotFoundException
 import com.laces.core.security.component.events.UserUpdatedEvent
 import com.laces.core.security.component.random.RandomKeyService
@@ -9,7 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.*
@@ -33,18 +34,22 @@ class EmailChangeService(
     }
 
     @Transactional
-    fun requestEmailChange(newEmail: String, password: String) {
+    fun requestEmailChange(newEmail: String, confirmNewEmail: String, password: String) {
 
         userService.validateNewEmail(newEmail)
+
+        if(newEmail != confirmNewEmail){
+            throw InvalidEmailException("Emails do not match.")
+        }
 
         val user = userService.getCurrentUser()
 
         if(!passwordEncoder.matches(password, user.password)){
-            throw AccessDeniedException("Invalid Password")
+            throw InvalidPasswordException()
         }
 
         val passKey = randomKeyService.generateRandomKey()
-
+        emailChangeRepository.deleteByUser(user)
         emailChangeRepository.save(EmailChange(newEmail,passKey, user))
 
         try {

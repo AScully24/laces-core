@@ -24,8 +24,8 @@ class UserController(
 
     @PostMapping("email/change-request")
     fun requestEmailChange(@RequestBody requestEmailChangeDto: RequestEmailChangeDto){
-        val (newEmail, password) = requestEmailChangeDto
-        emailChangeService.requestEmailChange(newEmail, password)
+        val (newEmail, confirmNewEmail, password) = requestEmailChangeDto
+        emailChangeService.requestEmailChange(newEmail,confirmNewEmail, password)
     }
 
     @PostMapping("email/change-confirmation")
