@@ -1,14 +1,14 @@
 package com.laces.core.security.controllers
 
+import com.laces.core.security.component.changes.EmailChangeService
 import com.laces.core.security.component.payment.plans.user.UserPlanService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("api/user")
 class UserController(
-        private val planService: UserPlanService
+        private val planService: UserPlanService,
+        private val emailChangeService: EmailChangeService
 ) {
 
     @GetMapping("details")
@@ -21,4 +21,16 @@ class UserController(
             user.additionalInfo?.toDto()
         )
     }
+
+    @PostMapping("email/change-request")
+    fun requestEmailChange(@RequestBody requestEmailChangeDto: RequestEmailChangeDto){
+        val (newEmail, confirmNewEmail, password) = requestEmailChangeDto
+        emailChangeService.requestEmailChange(newEmail,confirmNewEmail, password)
+    }
+
+    @PostMapping("email/change-confirmation")
+    fun confirmEmailChange(@RequestBody dto: ConfirmEmailChangeDto){
+        emailChangeService.confirmEmailChange(dto.token)
+    }
 }
+
