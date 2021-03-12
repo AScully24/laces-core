@@ -1,10 +1,13 @@
 package com.laces.core.security.component.register
 
 import com.laces.core.email.EmailService
-import com.laces.core.email.isValidEmail
-import com.laces.core.responses.*
+import com.laces.core.responses.EmptyPasswordException
+import com.laces.core.responses.PasswordMismatchException
+import com.laces.core.responses.ResourceNotFoundException
+import com.laces.core.responses.UserRegistrationTokenException
 import com.laces.core.security.component.payment.PaymentService
 import com.laces.core.security.component.payment.plans.NewSubscription
+import com.laces.core.security.component.random.RandomKeyService
 import com.laces.core.security.component.user.NewUser
 import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
@@ -17,9 +20,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.*
-import javax.crypto.KeyGenerator
 import javax.transaction.Transactional
-import javax.xml.bind.DatatypeConverter
 
 @Service
 class RegisterService(
@@ -27,6 +28,7 @@ class RegisterService(
     private val userService: UserService,
     private val emailService: EmailService,
     private val paymentService: PaymentService,
+    private val randomKeyService: RandomKeyService,
 
     @Value("\${app.url}")
     val appUrl: String
@@ -69,25 +71,17 @@ class RegisterService(
     }
 
     private fun createNewRegisterToken(user: User) {
-        val passKey = generateRandomKey()
+        val passKey = randomKeyService.generateRandomKey()
         registerTokenRepository.save(RegisterToken(passKey, user))
         try {
             emailService.sendSimpleMessageFromRegistration(
                 user.username, "Registration Confirmation",
-                "Please follow the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey"
+                "Please select the following link to complete your registrations.\n${appUrl}register-confirmation/$passKey"
             )
 
         } catch (e: Exception) {
             LOG.error("Unable to send email: ", e)
         }
-    }
-
-    private fun generateRandomKey(): String {
-        val keyGen = KeyGenerator.getInstance("AES")
-            .also { it.init(128) }
-        val secretKey = keyGen.generateKey()
-        val encoded = secretKey.encoded
-        return DatatypeConverter.printHexBinary(encoded).toLowerCase()
     }
 
     @Transactional
@@ -110,11 +104,7 @@ class RegisterService(
 
     fun validateNewUser(newUser: NewUser) {
 
-        if (userService.existsByName(newUser.username)) {
-            throw EmailExistsException("Email already exists: ${newUser.username}")
-        }
-
-        isValidEmail(newUser.username)
+        userService.validateNewEmail(newUser.username)
 
         if (StringUtils.isBlank(newUser.password)) {
             throw EmptyPasswordException("Password cannot be blank.")
@@ -134,7 +124,7 @@ class RegisterService(
             throw UserRegistrationTokenException(token)
         }
 
-        val registerToken = registerTokenRepository.findByToken(token)
+        val registerToken = registerTokenRepository.findByToken(token) ?: throw ResourceNotFoundException("Unable to find token: $token")
         val user = registerToken.user
         val confirmedUser = userService.save(user.copy(subscriptionState = ACTIVE))
 
