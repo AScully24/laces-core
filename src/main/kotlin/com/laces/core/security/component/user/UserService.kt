@@ -1,6 +1,8 @@
 package com.laces.core.security.component.user
 
+import com.laces.core.email.isValidEmail
 import com.laces.core.responses.CurrentUserNotFoundException
+import com.laces.core.responses.EmailExistsException
 import com.laces.core.responses.UserNameExistsException
 import com.laces.core.security.component.user.spring.MyUserPrincipal
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
@@ -91,5 +93,13 @@ class UserService(
                 .flatMap { sessionRegistry.getAllSessions(it, true) }
                 .forEach { it.expireNow() }
 
+    }
+
+    fun validateNewEmail(userName: String) {
+        isValidEmail(userName)
+
+        if (existsByName(userName)) {
+            throw EmailExistsException("Email already exists: $userName")
+        }
     }
 }

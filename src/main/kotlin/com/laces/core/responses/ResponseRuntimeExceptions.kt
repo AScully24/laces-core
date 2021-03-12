@@ -30,6 +30,9 @@ class EmailExistsException(exception: String) : RuntimeException(exception)
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class InvalidEmailException(exception: String) : RuntimeException(exception)
 
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+class InvalidPasswordException : RuntimeException("Access Denied: You password is incorrect.")
+
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class EmptyPasswordException(exception: String) : RuntimeException(exception)
 
