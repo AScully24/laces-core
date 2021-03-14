@@ -1,4 +1,4 @@
-package com.laces.core.security.component.changes
+package com.laces.core.security.component.changes.password
 
 import com.laces.core.jpa.BaseEntity
 import com.laces.core.security.component.expireInMinutes
@@ -11,9 +11,8 @@ import javax.persistence.JoinColumn
 import javax.persistence.OneToOne
 
 @Entity
-data class EmailChange(
+data class PasswordReset(
 
-    val newEmail: String = "invalid-email@prism-conversion.com",
     override val token: String = "N/A",
 
     @JoinColumn

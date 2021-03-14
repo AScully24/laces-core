@@ -1,6 +1,6 @@
 package com.laces.core.security.controllers
 
-import com.laces.core.security.component.changes.EmailChangeService
+import com.laces.core.security.component.changes.email.EmailChangeService
 import com.laces.core.security.component.payment.plans.user.UserPlanService
 import org.springframework.web.bind.annotation.*
 
@@ -33,4 +33,3 @@ class UserController(
         emailChangeService.confirmEmailChange(dto.token)
     }
 }
-

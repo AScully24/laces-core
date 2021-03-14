@@ -21,6 +21,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import javax.annotation.PostConstruct
 
 
 @Order(0)
@@ -47,13 +48,15 @@ class LacesSecurityConfigAdapter(
             "/payment/**",
             "/api/form/**",
             "/api/contact/**",
+            "/api/password/reset/**",
             STRIPE_WEBHOOK_URL
     )
 
     var allowedUrls = mutableListOf<String>()
     var authenticatedUrls = mutableListOf<String>()
 
-    init {
+    @PostConstruct
+    fun postConstruct() {
         if (includeDefaultAllowed) {
             allowedUrls.addAll(defaultUrls)
             LOG.info("Including default URLs.")
