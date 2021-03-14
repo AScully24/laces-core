@@ -1,8 +1,6 @@
 package com.laces.core.security.component.register
 
 import com.laces.core.email.EmailService
-import com.laces.core.responses.EmptyPasswordException
-import com.laces.core.responses.PasswordMismatchException
 import com.laces.core.responses.ResourceNotFoundException
 import com.laces.core.responses.UserRegistrationTokenException
 import com.laces.core.security.component.payment.PaymentService
@@ -13,7 +11,6 @@ import com.laces.core.security.component.user.User
 import com.laces.core.security.component.user.UserService
 import com.laces.core.security.component.user.subscription.SubscriptionState
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
-import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -106,13 +103,10 @@ class RegisterService(
 
         userService.validateNewEmail(newUser.username)
 
-        if (StringUtils.isBlank(newUser.password)) {
-            throw EmptyPasswordException("Password cannot be blank.")
-        }
+        val password = newUser.password
+        val confirmPassword = newUser.confirmPassword
 
-        if (newUser.password != newUser.confirmPassword) {
-            throw PasswordMismatchException("Passwords do not match.")
-        }
+        userService.validatePassword(password, confirmPassword)
 
         additionalInfoValidator?.validate(newUser.additionalInfo)
     }

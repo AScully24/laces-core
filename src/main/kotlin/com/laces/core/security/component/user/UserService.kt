@@ -1,12 +1,11 @@
 package com.laces.core.security.component.user
 
 import com.laces.core.email.isValidEmail
-import com.laces.core.responses.CurrentUserNotFoundException
-import com.laces.core.responses.EmailExistsException
-import com.laces.core.responses.UserNameExistsException
+import com.laces.core.responses.*
 import com.laces.core.security.component.user.spring.MyUserPrincipal
 import com.laces.core.security.component.user.subscription.SubscriptionState.ACTIVE
 import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
+import org.apache.commons.lang3.StringUtils.isBlank
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.session.SessionRegistry
@@ -95,6 +94,12 @@ class UserService(
 
     }
 
+    fun confirmPassword(password: String, user: User = getCurrentUserFromDatabase()){
+        if(!passwordEncoder.matches(password, user.password)){
+            throw InvalidPasswordException()
+        }
+    }
+
     fun validateNewEmail(userName: String) {
         isValidEmail(userName)
 
@@ -102,4 +107,16 @@ class UserService(
             throw EmailExistsException("Email already exists: $userName")
         }
     }
+
+    fun validatePassword(password: String, confirmPassword: String) {
+        if (isBlank(password)) {
+            throw EmptyPasswordException("Password cannot be blank.")
+        }
+
+        if (password != confirmPassword) {
+            throw PasswordMismatchException("Passwords do not match.")
+        }
+    }
+
+
 }

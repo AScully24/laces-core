@@ -5,7 +5,7 @@ import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
 import com.laces.core.form.core.FormAnnotations.FormData
 
 @FormData(name = "RequestEmailChange", isPublic = true)
-@JsonSchemaTitle("Request Email Change")
+@JsonSchemaTitle("Change Email")
 data class RequestEmailChangeDto(
     @JsonProperty(value = "New Email")
     val newEmail: String,
