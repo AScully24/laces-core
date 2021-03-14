@@ -1,4 +1,4 @@
-package com.laces.core.security.component.changes
+package com.laces.core.security.component.changes.email
 
 import com.laces.core.email.EmailService
 import com.laces.core.responses.InvalidEmailException
