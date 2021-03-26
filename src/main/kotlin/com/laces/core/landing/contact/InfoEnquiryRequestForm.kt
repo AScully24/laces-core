@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
 import com.laces.core.form.core.FormAnnotations.FormData
-import com.laces.core.form.core.generateStringArrayNode
+import com.laces.core.form.core.generateNodeWithStringArrayProperty
 import com.laces.core.landing.contact.InfoEnquirySubject.MAILING_LIST
 import java.util.function.Supplier
 
@@ -26,6 +26,6 @@ data class InfoEnquiryRequestForm(
 
 class InfoEnquirySubjectSupplier : Supplier<JsonNode> {
     override fun get(): JsonNode {
-        return generateStringArrayNode("enumNames", InfoEnquirySubject.values().map { it.display })
+        return generateNodeWithStringArrayProperty("enumNames", InfoEnquirySubject.values().map { it.display })
     }
 }

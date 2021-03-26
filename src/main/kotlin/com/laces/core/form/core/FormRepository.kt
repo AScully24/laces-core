@@ -1,5 +1,6 @@
 package com.laces.core.form.core
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.laces.core.form.core.FormAnnotations.FormData
 import com.laces.core.form.dto.FlowResponse
 import com.laces.core.form.dto.FlowStepResponse
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Component
 class FormRepository(
         private val jsonSchemaCustomGenerator: JsonSchemaCustomGenerator,
         private val flows: List<Flow>,
-        private val packageLocations: PackageLocations
+        private val packageLocations: PackageLocations,
+        private val postProcessor: JsonSchemaPostProcessor
 ) {
 
     fun findFlow(flowName: String): FlowResponse? {
@@ -68,7 +70,8 @@ class FormRepository(
         val formAnnotation = clazz.getAnnotation(FormData::class.java) ?: throw FormAnnotationNotPresent()
         val title = getSchemaTitle(clazz)
         val name = getSchemaName(clazz)
-        val modifiedSchema = jsonSchemaCustomGenerator.constructModifiedSchema(clazz)
+        val schema: JsonNode = jsonSchemaCustomGenerator.constructModifiedSchema(clazz)
+        val modifiedSchema = postProcessor.process(clazz, schema)
         val groups = formAnnotation.groups.asList()
 
         return Form(name, title, clazz.canonicalName, modifiedSchema, groups)
