@@ -3,13 +3,14 @@ package com.laces.core.form.core
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 
-fun generateStringArrayNode(nodeName: String, values: List<String>): JsonNode {
+fun generateNodeWithStringArrayProperty(propertyName: String, values: List<String>): ObjectNode {
     val schema = ObjectMapper().createObjectNode()
     val arrayNode = ObjectMapper().createArrayNode()
     values.forEach { arrayNode.add(it) }
-    schema.set<ArrayNode>(nodeName, arrayNode)
+    schema.set<ArrayNode>(propertyName, arrayNode)
 
     return schema
 }

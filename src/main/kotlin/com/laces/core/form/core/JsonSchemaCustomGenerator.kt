@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class JsonSchemaCustomGenerator (
-        private val jsonSchemaGenerator : JsonSchemaGenerator
-){
+class JsonSchemaCustomGenerator(
+    private val jsonSchemaGenerator: JsonSchemaGenerator
+) {
 
     @Autowired(required = false)
     var suppliers: List<JsonInjectionSupplier>? = null
@@ -32,6 +32,12 @@ class JsonSchemaCustomGenerator (
 
     private fun addKeyValueToNode(jsonSchema: JsonNode, value: String, key: String): JsonNode {
         (jsonSchema as ObjectNode).put(key, value)
+        return jsonSchema
+    }
+
+    private fun overrideRequired(jsonSchema: JsonNode): JsonNode {
+        val get = jsonSchema.get("definitions").get("HeaderKeyValueSecurityConfigurationDto")
+        (get as ObjectNode).replace("required", generateStringArrayNode(emptyList()))
         return jsonSchema
     }
 }
