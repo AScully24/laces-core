@@ -37,7 +37,7 @@ class LacesSecurityConfigAdapter(
         const val STRIPE_WEBHOOK_URL = "/stripe/webhook"
     }
 
-    final val defaultUrls = listOf(
+    private final val defaultUrls = listOf(
             "/*.js",
             "/*.jpg",
             "/*.css",
@@ -47,6 +47,7 @@ class LacesSecurityConfigAdapter(
             "/api/form/**",
             "/api/contact/**",
             "/api/password/reset/**",
+            "/stripe/api-key",
             STRIPE_WEBHOOK_URL
     )
 
