@@ -1,7 +1,7 @@
 package com.laces.core.security.component.user.spring
 
 import com.laces.core.security.component.user.User
-import com.laces.core.security.component.user.subscription.SubscriptionState.AWAITING_CONFIRMATION
+import com.laces.core.security.component.user.subscription.SubscriptionState.*
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
@@ -28,11 +28,11 @@ class MyUserPrincipal(val user: User) : UserDetails {
     }
 
     override fun isAccountNonExpired(): Boolean {
-        return true
+        return user.subscriptionState != CANCELLED
     }
 
     override fun isAccountNonLocked(): Boolean {
-        return true
+        return user.subscriptionState != UNPAID
     }
 
     override fun toString(): String {

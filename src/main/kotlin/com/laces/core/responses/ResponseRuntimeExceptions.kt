@@ -12,6 +12,9 @@ class UserNameExistsException(userName: String) : RuntimeException("User name ex
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class UserSubscriptionStripeIdException(exception: String) : RuntimeException(exception)
 
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserHasNoPaymentMethodException : RuntimeException("You do not have a payment setup. Please add one to change plan to a non paid version.")
+
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class CurrentUserNotFoundException(exception: String) : RuntimeException(exception)
 
