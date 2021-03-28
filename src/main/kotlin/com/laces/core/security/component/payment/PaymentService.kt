@@ -2,6 +2,7 @@ package com.laces.core.security.component.payment
 
 import com.laces.core.responses.UserCustomerStripeIdException
 import com.laces.core.responses.UserDoesNotHavePaymentMethod
+import com.laces.core.responses.UserHasNoPaymentMethodException
 import com.laces.core.responses.UserSubscriptionStripeIdException
 import com.laces.core.security.component.payment.plans.SubscriptionPlanService
 import com.laces.core.security.component.user.User
@@ -11,6 +12,8 @@ import com.laces.core.security.component.user.subscription.SubscriptionState.ACT
 import com.laces.core.security.component.user.subscription.SubscriptionState.CANCEL_PENDING
 import com.stripe.Stripe
 import com.stripe.model.Customer
+import com.stripe.model.PaymentMethod
+import com.stripe.model.PaymentMethodCollection
 import com.stripe.model.Subscription
 import com.stripe.param.SubscriptionCreateParams
 import com.stripe.param.SubscriptionUpdateParams
@@ -74,6 +77,9 @@ class PaymentService(
             LOGGER.info("Unable to change subscription for user ${user.id}. Does not exist in Stripe")
             throw RuntimeException("You must reactivate your subscription before changing it.")
         }
+
+        validateCustomerHasPaymentMethods(user)
+
         updateStripeSubscription(subscription, newPlanStripeId, newMeteredStripeId)
 
         userService.save(user.copy(
@@ -81,6 +87,18 @@ class PaymentService(
                 meteredStripeId = newMeteredStripeId
         ))
 
+    }
+
+    private fun validateCustomerHasPaymentMethods(user: User) {
+        val params: MutableMap<String, Any> = HashMap()
+        params["customer"] = user.customerStripeId
+        params["type"] = "card"
+
+        val paymentMethods: PaymentMethodCollection = PaymentMethod.list(params)
+
+        if(paymentMethods.data.isEmpty()){
+            throw UserHasNoPaymentMethodException()
+        }
     }
 
     @Transactional
@@ -127,7 +145,7 @@ class PaymentService(
             )
 
 
-        if (previousSubscriptionItems[1] != null) {
+        if (previousSubscriptionItems.size > 1) {
             params.addItem(
                 SubscriptionUpdateParams.Item.builder()
                     .setId(previousSubscriptionItems[1].id)
