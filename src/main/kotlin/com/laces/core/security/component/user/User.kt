@@ -11,27 +11,31 @@ import javax.persistence.GenerationType.IDENTITY
 @Serializable
 data class User(
 
-        @Id
-        @GeneratedValue(strategy = IDENTITY)
-        override var id: Long? = null,
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    override var id: Long? = null,
 
-        @Column(nullable = false, unique = true)
-        val username: String = "",
+    @Column(nullable = false, unique = true)
+    val username: String = "",
 
-        val password: String = "",
-        @Enumerated(EnumType.STRING)
-        val subscriptionState: SubscriptionState = SubscriptionState.AWAITING_CONFIRMATION,
+    val password: String = "",
+    @Enumerated(EnumType.STRING)
+    val subscriptionState: SubscriptionState = SubscriptionState.AWAITING_CONFIRMATION,
 
-        val customerStripeId: String = "",
-        val subscriptionStripeId: String = "",
-        val subscriptionItemId: String = "",
-        val planStripeId: String = "",
-        val meteredStripeId: String? = null,
-        @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
-        val additionalInfo: AdditionalInfo? = null
+    val customerStripeId: String = "",
+    val subscriptionStripeId: String = "",
+    val subscriptionItemId: String = "",
+    val planStripeId: String = "",
+    val meteredStripeId: String? = null,
+
+    // TODO: Being lazy here. Need to convert this to a proper date at some point.
+    val nextBillingDate: Long = 0L,
+
+    @OneToOne(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER)
+    val additionalInfo: AdditionalInfo? = null
 
 ) : HasId, java.io.Serializable {
-        companion object {
-                private const val serialVersionUID: Long = 1
-        }
+    companion object {
+        private const val serialVersionUID: Long = 1
+    }
 }

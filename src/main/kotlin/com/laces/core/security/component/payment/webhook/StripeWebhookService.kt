@@ -12,7 +12,6 @@ import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.stereotype.Service
 import javax.transaction.Transactional
 
-
 @Service
 class StripeWebhookService(
         @Value("\${app.stripe.secret}")
@@ -20,7 +19,6 @@ class StripeWebhookService(
 
         @Value("\${app.stripe.webhook.signing-secret}")
         val signingSecret: String
-
 ) {
     init { Stripe.apiKey = secret }
 

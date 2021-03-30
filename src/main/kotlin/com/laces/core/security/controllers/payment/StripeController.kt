@@ -1,7 +1,6 @@
 package com.laces.core.security.controllers.payment
 
 import com.laces.core.security.component.payment.webhook.StripeWebhookService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.*
@@ -11,11 +10,10 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnProperty("app.stripe.enabled")
 class StripeController (
     @Value("\${app.stripe.api-key}")
-    private val apiKey: String
-        ){
+    private val apiKey: String,
 
-    @Autowired
-    lateinit var stripeWebHookService: StripeWebhookService
+    private val stripeWebHookService: StripeWebhookService
+){
 
     @ResponseBody
     @PostMapping(value = ["webhook"], consumes = ["application/json"], produces = ["application/json"])
