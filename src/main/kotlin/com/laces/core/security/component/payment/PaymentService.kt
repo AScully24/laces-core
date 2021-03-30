@@ -185,7 +185,8 @@ class PaymentService(
                 subscriptionState = subscriptionState,
                 planStripeId = planStripeId,
                 meteredStripeId = meteredStripeId,
-                subscriptionItemId = planId
+                subscriptionItemId = planId,
+                nextBillingDate = subscription.currentPeriodEnd
         )
 
         userService.save(updatedUser)

@@ -129,13 +129,16 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <version>${kotlin.version}</version>
+
                 <configuration>
                     <compilerPlugins>
                         <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
                         <plugin>kotlinx-serialization</plugin>
                     </compilerPlugins>
                     <jvmTarget>1.8</jvmTarget>
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -150,6 +153,7 @@
                         <goals> <goal>test-compile</goal> </goals>
                     </execution>
                 </executions>
+
                 <dependencies>
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
@@ -159,6 +163,11 @@
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
                         <artifactId>kotlin-maven-serialization</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
                 </dependencies>

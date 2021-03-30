@@ -81,6 +81,10 @@ class UserService(
         return userRepository.findBySubscriptionStripeId(subscriptionId)
     }
 
+    fun findByCustomerStripeId(customerId: String): User? {
+        return userRepository.findByCustomerStripeId(customerId)
+    }
+
     fun findById(id: Long): User? {
         return userRepository.findByIdOrNull(id)
     }
@@ -117,6 +121,5 @@ class UserService(
             throw PasswordMismatchException("Passwords do not match.")
         }
     }
-
 
 }
