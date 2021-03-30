@@ -23,12 +23,9 @@ class SubscriptionUpdatedWebhook(
         val userSubscriptionStatusService: UserSubscriptionStatusService
 ) : WebhookProcessor {
 
-    companion object {
-    }
-
     override fun process(event: Event) {
         val subscription: Subscription = event.data.`object` as Subscription
-        val user = userService.getUserBySubscription(subscription.id) ?: throw RuntimeException("Unable to process event. $event")
+        val user = userService.getUserBySubscription(subscription.id) ?: throw RuntimeException("Unable to process webhook event. $event")
         when {
             isSetToCancelledPending(subscription, user) -> userSubscriptionStatusService.cancelPendingUserSubscription(user)
             subscription.status == UNPAID -> userSubscriptionStatusService.setUserSubscriptionToUnpaid(user)
