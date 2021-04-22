@@ -5,7 +5,7 @@ import com.laces.core.database.MasterReplicaRoutingDataSource.Type.REPLICA
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import javax.sql.DataSource
 
-class MasterReplicaRoutingDataSource(master: DataSource, slave: DataSource) : AbstractRoutingDataSource() {
+class MasterReplicaRoutingDataSource(master: DataSource, private val slave: DataSource?) : AbstractRoutingDataSource() {
 
     companion object {
         private val currentDataSource = ThreadLocal<Type>()
@@ -20,7 +20,11 @@ class MasterReplicaRoutingDataSource(master: DataSource, slave: DataSource) : Ab
     }
 
     init {
-        val dataSources: MutableMap<Any, Any> = mutableMapOf(MASTER to master, REPLICA to slave)
+        val dataSources: MutableMap<Any, Any> = if(slave == null){
+            mutableMapOf(MASTER to master)
+        } else{
+            mutableMapOf(MASTER to master, REPLICA to slave)
+        }
         super.setTargetDataSources(dataSources)
         super.setDefaultTargetDataSource(master)
     }
@@ -30,6 +34,9 @@ class MasterReplicaRoutingDataSource(master: DataSource, slave: DataSource) : Ab
     }
 
     override fun determineCurrentLookupKey(): Any? {
+        if(slave == null){
+            return MASTER
+        }
         return currentDataSource.get()
     }
 }

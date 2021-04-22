@@ -4,6 +4,7 @@ import com.laces.core.form.core.PackageLocations
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder
@@ -26,46 +27,36 @@ class MultiDatabaseConfiguration(
     private val packageLocations: PackageLocations
 ) {
 
-    @Bean
+    @Bean(name = ["masterDatabaseConfig"])
     @ConfigurationProperties(prefix = "laces.datasources.master")
     fun masterConfiguration(): HikariConfig {
         return HikariConfig()
     }
 
-    @Bean
+    @Bean(name = ["slaveDatabaseConfig"])
     @ConfigurationProperties(prefix = "laces.datasources.slave")
+    @ConditionalOnProperty("laces.datasources.slave.enabled")
     fun slaveConfiguration(): HikariConfig {
         return HikariConfig()
     }
 
-    @Bean
-    fun routingDataSource(): DataSource {
-//        return MasterReplicaRoutingDataSource(
-//            loggingProxy("master", HikariDataSource(masterConfiguration())),
-//            loggingProxy("replica", HikariDataSource(slaveConfiguration()))
-//        )
-
+    @Bean()
+    fun routingDataSource(
+        masterDatabaseConfig: HikariConfig,
+        slaveDatabaseConfig: HikariConfig?
+    ): DataSource {
         return MasterReplicaRoutingDataSource(
-            HikariDataSource(masterConfiguration()),
-            HikariDataSource(slaveConfiguration())
+            HikariDataSource(masterDatabaseConfig),
+            HikariDataSource(slaveDatabaseConfig)
         )
 
     }
 
-//    private fun loggingProxy(name: String, dataSource: DataSource): DataSource {
-//        val loggingListener = SLF4JQueryLoggingListener()
-//        loggingListener.setLogLevel(SLF4JLogLevel.INFO)
-//        loggingListener.setLogger(name)
-//        loggingListener.setWriteConnectionId(false)
-//        return ProxyDataSourceBuilder
-//            .create(dataSource)
-//            .name(name)
-//            .listener(loggingListener)
-//            .build()
-//    }
-
     @Bean
-    fun entityManagerFactory(builder: EntityManagerFactoryBuilder): LocalContainerEntityManagerFactoryBean {
+    fun entityManagerFactory(
+        builder: EntityManagerFactoryBuilder,
+        routingDataSource: DataSource
+    ): LocalContainerEntityManagerFactoryBean {
         val packages = packageLocations.packages
             .toMutableList()
             .apply { add("com.adt") }
@@ -73,7 +64,7 @@ class MultiDatabaseConfiguration(
             .toTypedArray()
 
         return builder
-            .dataSource(routingDataSource())
+            .dataSource(routingDataSource)
             .packages(*packages)
             .properties(jpaProperties())
             .build()
@@ -92,7 +83,7 @@ class MultiDatabaseConfiguration(
 
     @Bean
     fun entityManagerFactoryBuilder(): EntityManagerFactoryBuilder? {
-        return EntityManagerFactoryBuilder(HibernateJpaVendorAdapter(), mutableMapOf<String,String>(), null)
+        return EntityManagerFactoryBuilder(HibernateJpaVendorAdapter(), mutableMapOf<String, String>(), null)
     }
 
     protected fun jpaProperties(): Map<String, Any>? {
