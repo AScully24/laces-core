@@ -40,7 +40,7 @@ class MultiDatabaseConfiguration(
         return HikariConfig()
     }
 
-    @Bean()
+    @Bean
     fun routingDataSource(
         masterDatabaseConfig: HikariConfig,
         slaveDatabaseConfig: HikariConfig?
@@ -62,11 +62,10 @@ class MultiDatabaseConfiguration(
             .apply { add("com.adt") }
             .toSet()
             .toTypedArray()
-
         return builder
             .dataSource(routingDataSource)
             .packages(*packages)
-            .properties(jpaProperties())
+            .properties(jpaProperties(hibernateProperties()))
             .build()
     }
 
@@ -86,10 +85,19 @@ class MultiDatabaseConfiguration(
         return EntityManagerFactoryBuilder(HibernateJpaVendorAdapter(), mutableMapOf<String, String>(), null)
     }
 
-    protected fun jpaProperties(): Map<String, Any>? {
+    @Bean
+    @ConfigurationProperties(prefix = "laces.datasources.hibernate")
+    fun hibernateProperties(): LacesHibernateProperties {
+        return LacesHibernateProperties()
+    }
+
+    data class LacesHibernateProperties(var ddlAuto: String = "none")
+
+    protected fun jpaProperties(properties: LacesHibernateProperties): Map<String, Any>? {
         val props: MutableMap<String, Any> = HashMap()
         props["hibernate.physical_naming_strategy"] = SpringPhysicalNamingStrategy::class.java.name
         props["hibernate.implicit_naming_strategy"] = SpringImplicitNamingStrategy::class.java.name
+        props["hibernate.hbm2ddl.auto"] = properties.ddlAuto
         return props
     }
 }
