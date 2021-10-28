@@ -9,4 +9,5 @@ class SubscriptionPlan {
     var features: List<String> = mutableListOf()
     var free: Boolean = false
     var meta: Map<String, String> = mutableMapOf()
+    var visible: Boolean = false
 }
