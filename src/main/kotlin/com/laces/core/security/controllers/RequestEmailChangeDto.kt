@@ -2,7 +2,7 @@ package com.laces.core.security.controllers
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import com.laces.core.form.core.FormAnnotations.FormData
+import com.laces.form.core.FormAnnotations.FormData
 
 @FormData(name = "RequestEmailChange", isPublic = true)
 @JsonSchemaTitle("Change Email")

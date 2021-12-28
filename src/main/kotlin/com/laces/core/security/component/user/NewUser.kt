@@ -1,8 +1,8 @@
 package com.laces.core.security.component.user
 
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaFormat
-import com.laces.core.form.core.FormAnnotations.FormData
 import com.laces.core.security.component.user.NewUser.Companion.REGISTER
+import com.laces.form.core.FormAnnotations.FormData
 
 @FormData(groups = [REGISTER], isPublic = true)
 class NewUser {

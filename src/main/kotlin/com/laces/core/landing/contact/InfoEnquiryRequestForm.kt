@@ -1,12 +1,9 @@
 package com.laces.core.landing.contact
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.JsonNode
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import com.laces.core.form.core.FormAnnotations.FormData
-import com.laces.core.form.core.generateNodeWithStringArrayProperty
 import com.laces.core.landing.contact.InfoEnquirySubject.MAILING_LIST
-import java.util.function.Supplier
+import com.laces.form.core.FormAnnotations.FormData
 
 data class InfoEnquiryRequestDto(
         val formData: InfoEnquiryRequestForm,
@@ -23,9 +20,3 @@ data class InfoEnquiryRequestForm(
         @field:JsonProperty(value = "Enquiry", required = true)
         val message: String
 )
-
-class InfoEnquirySubjectSupplier : Supplier<JsonNode> {
-    override fun get(): JsonNode {
-        return generateNodeWithStringArrayProperty("enumNames", InfoEnquirySubject.values().map { it.display })
-    }
-}

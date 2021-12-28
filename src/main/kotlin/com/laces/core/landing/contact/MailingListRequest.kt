@@ -1,7 +1,7 @@
 package com.laces.core.landing.contact
 
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle
-import com.laces.core.form.core.FormAnnotations.FormData
+import com.laces.form.core.FormAnnotations.FormData
 
 @JsonSchemaTitle("")
 @FormData(name = "Email Submission Form", isPublic = true, groups = [CONTACT])

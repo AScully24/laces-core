@@ -1,6 +1,6 @@
 package com.laces.core.database
 
-import com.laces.core.form.core.PackageLocations
+import com.laces.form.core.PackageLocations
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.springframework.beans.factory.annotation.Qualifier
